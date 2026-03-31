@@ -19,6 +19,9 @@ interface AgentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAgents(agents: List<AgentEntity>)
 
+    @Query("SELECT * FROM agents WHERE id = :agentId LIMIT 1")
+    suspend fun getAgentByIdDirect(agentId: Int): AgentEntity?
+
     @Query("DELETE FROM agents WHERE id = :agentId")
     suspend fun deleteAgent(agentId: Int)
 }

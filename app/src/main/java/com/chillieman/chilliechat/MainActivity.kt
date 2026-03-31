@@ -17,6 +17,7 @@ import com.chillieman.chilliechat.presentation.components.ChillieChatTopBar
 import com.chillieman.chilliechat.presentation.navigation.AppNavigation
 import com.chillieman.chilliechat.presentation.navigation.EventsRoute
 import com.chillieman.chilliechat.presentation.navigation.SettingsRoute
+import com.chillieman.chilliechat.presentation.navigation.EntriesRoute
 import com.chillieman.chilliechat.presentation.navigation.ThreadsRoute
 import com.chillieman.chilliechat.presentation.ui.theme.ChillieChatTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,10 +43,14 @@ fun ChillieChatApp() {
 
     val isSettingsScreen = currentRoute?.contains("SettingsRoute") == true
     val isThreadsScreen = currentRoute?.contains("ThreadsRoute") == true
+    val isEntriesScreen = currentRoute?.contains("EntriesRoute") == true
     val isRootScreen = currentRoute?.contains("EventsRoute") == true || currentRoute == null
 
     val title = when {
         isSettingsScreen -> "Settings"
+        isEntriesScreen -> runCatching {
+            navBackStackEntry?.toRoute<EntriesRoute>()?.threadTitle
+        }.getOrNull() ?: "Chat"
         isThreadsScreen -> runCatching {
             navBackStackEntry?.toRoute<ThreadsRoute>()?.eventTitle
         }.getOrNull() ?: "Threads"
