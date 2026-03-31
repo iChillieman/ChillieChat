@@ -7,7 +7,14 @@ import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,19 +29,28 @@ class EntriesViewModel @Inject constructor(
     private val threadId: Int = checkNotNull(savedStateHandle["threadId"])
     private val threadTitle: String = checkNotNull(savedStateHandle["threadTitle"])
 
-    private val _isRefreshing = MutableStateFlow(false)
+    private val _hasMore = MutableStateFlow(true)
+    private val _isLoadingMore = MutableStateFlow(false)
+    private val _submitError = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<EntriesUiState> = combine(
-        getEntriesUseCase(threadId).onStart { refresh() }.catch { /* handle */ },
+        getEntriesUseCase(threadId)
+            .onStart {
+                try { getEntriesUseCase.refresh(threadId) }
+                catch (_: Exception) { /* Cached data still flows */ }
+            }
+            .catch { emit(emptyList()) },
         agentPreferencesManager.agentPreferences,
-        _isRefreshing
-    ) { entries, prefs, isRefreshing ->
+        _hasMore,
+        _isLoadingMore
+    ) { entries, prefs, hasMore, isLoadingMore ->
         EntriesUiState.Success(
             threadId = threadId,
             threadTitle = threadTitle,
             entries = entries,
             currentAgentId = prefs.agentId,
-            isRefreshing = isRefreshing
+            hasMore = hasMore,
+            isLoadingMore = isLoadingMore
         )
     }.stateIn(
         scope = viewModelScope,
@@ -42,19 +58,36 @@ class EntriesViewModel @Inject constructor(
         initialValue = EntriesUiState.Loading
     )
 
-    fun refresh() {
-        // Implementation for pagination/refresh
+    fun loadOlderEntries() {
+        val state = uiState.value
+        if (state !is EntriesUiState.Success || state.isLoadingMore || !state.hasMore) return
+        val lowestId = state.entries.minOfOrNull { it.id } ?: return
+
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+            try {
+                val hasMore = getEntriesUseCase.loadMore(threadId, lowestId)
+                _hasMore.value = hasMore
+            } catch (_: Exception) {
+                // Silently fail — cached data still visible
+            }
+            _isLoadingMore.value = false
+        }
     }
 
     fun submitEntry(content: String) {
         viewModelScope.launch {
-            val prefs = agentPreferencesManager.agentPreferences.first()
-            submitEntryUseCase(
-                threadId = threadId,
-                content = content,
-                agentId = prefs.agentId,
-                agentSecret = prefs.agentSecret
-            )
+            try {
+                val prefs = agentPreferencesManager.agentPreferences.first()
+                submitEntryUseCase(
+                    threadId = threadId,
+                    content = content,
+                    agentId = prefs.agentId,
+                    agentSecret = prefs.agentSecret
+                )
+            } catch (_: Exception) {
+                // Entry failed to send — the local cache flow still shows existing entries
+            }
         }
     }
 }

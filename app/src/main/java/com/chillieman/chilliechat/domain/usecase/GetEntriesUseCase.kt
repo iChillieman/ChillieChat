@@ -18,4 +18,7 @@ class GetEntriesUseCase @Inject constructor(
 
     suspend fun refresh(threadId: Int): Boolean =
         entryRepository.refreshEntries(threadId)
+
+    suspend fun loadMore(threadId: Int, lowestEntryId: Int): Boolean =
+        entryRepository.refreshEntries(threadId, lowestEntryId)
 }
