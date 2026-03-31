@@ -11,5 +11,8 @@ class GetThreadsForEventUseCase @Inject constructor(
 ) {
     operator fun invoke(eventId: Int): Flow<List<ChatThread>> =
         threadRepository.getThreadsByEventId(eventId)
-            .onStart { threadRepository.refreshThreadsForEvent(eventId) }
+            .onStart {
+                try { threadRepository.refreshThreadsForEvent(eventId) }
+                catch (_: Exception) { /* Cached data still flows */ }
+            }
 }

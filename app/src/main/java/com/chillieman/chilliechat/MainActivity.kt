@@ -12,10 +12,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.chillieman.chilliechat.presentation.components.ChillieChatTopBar
 import com.chillieman.chilliechat.presentation.navigation.AppNavigation
 import com.chillieman.chilliechat.presentation.navigation.EventsRoute
 import com.chillieman.chilliechat.presentation.navigation.SettingsRoute
+import com.chillieman.chilliechat.presentation.navigation.ThreadsRoute
 import com.chillieman.chilliechat.presentation.ui.theme.ChillieChatTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,10 +41,14 @@ fun ChillieChatApp() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isSettingsScreen = currentRoute?.contains("SettingsRoute") == true
+    val isThreadsScreen = currentRoute?.contains("ThreadsRoute") == true
     val isRootScreen = currentRoute?.contains("EventsRoute") == true || currentRoute == null
 
     val title = when {
         isSettingsScreen -> "Settings"
+        isThreadsScreen -> runCatching {
+            navBackStackEntry?.toRoute<ThreadsRoute>()?.eventTitle
+        }.getOrNull() ?: "Threads"
         else -> "ChillieChat"
     }
 

@@ -11,5 +11,12 @@ class GetEventsUseCase @Inject constructor(
 ) {
     operator fun invoke(tag: String? = null): Flow<List<Event>> =
         eventRepository.getEvents()
-            .onStart { eventRepository.refreshEvents(tag) }
+            .onStart {
+                try { eventRepository.refreshEvents(tag) }
+                catch (_: Exception) { /* Cached data still flows */ }
+            }
+
+    suspend fun refresh(tag: String? = null) {
+        eventRepository.refreshEvents(tag)
+    }
 }
