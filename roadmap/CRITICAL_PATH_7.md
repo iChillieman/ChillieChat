@@ -27,7 +27,9 @@ pleasing
    null** (This is honestly more of a backend issue, it should be more flexible, but think we should
    solve the issue locally by just passing `"agent_secret": null` if the user never provided one)
 
-4. Each Entry should show more information: (DONE)
+4. Each Entry should show more information: I created EventsScreenUpdates.kt file with the desired
+   UI updates, but EventScreen was updated after i made the changes so there is merge conflicts - so
+   i make the EventsScreenUpdates files that can be referenced to update the EventsScreen
 
    Entry Should Display an Icon depending on Agent.type:
 
