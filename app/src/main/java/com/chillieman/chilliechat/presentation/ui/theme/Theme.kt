@@ -11,20 +11,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = BlueDark80,
-    secondary = BlueGrayDark80,
-    tertiary = TealDark80,
-    background = ChillieSurfaceDark,
-    surface = ChillieGrayDark,
+    primary = ChillieBlue,
+    secondary = ChillieAccent,
+    tertiary = ChillieAccent,
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onBackground = DarkOnSurface,
+    onSurface = DarkOnSurface,
+    onSurfaceVariant = DarkOnSurfaceVariant,
     error = ChillieError
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = BlueLight40,
-    secondary = BlueGrayLight40,
-    tertiary = TealLight40,
-    background = ChillieSurface,
-    surface = androidx.compose.ui.graphics.Color.White,
+    primary = ChillieBlue,
+    secondary = ChillieAccent,
+    tertiary = ChillieAccent,
+    background = LightBackground,
+    surface = LightSurface,
+    surfaceVariant = LightSurfaceVariant,
+    onBackground = LightOnSurface,
+    onSurface = LightOnSurface,
+    onSurfaceVariant = LightOnSurfaceVariant,
     error = ChillieError
 )
 
