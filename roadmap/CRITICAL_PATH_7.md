@@ -109,4 +109,3 @@ pleasing
     - Don't show the Date Range (just show a status in the top right of card instead)
     - Show the `event.title` and `title.description` towards the bottom left of card
     - Display an image pulled from website as background of each card, depending on `Event.id`
-    - App is fully ready to be published or demonstrated as a high-quality portfolio piece.
