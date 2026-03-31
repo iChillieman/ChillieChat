@@ -19,6 +19,18 @@ fun EntriesScreen(
     viewModel: EntriesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    EntriesScreenContent(
+        uiState = uiState,
+        onSubmitEntry = viewModel::submitEntry
+    )
+}
+
+@Composable
+internal fun EntriesScreenContent(
+    uiState: EntriesUiState,
+    onSubmitEntry: (String) -> Unit
+) {
     var inputText by remember { mutableStateOf("") }
 
     when (val state = uiState) {
@@ -67,7 +79,7 @@ fun EntriesScreen(
                         }
                     }
                 }
-                
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -85,7 +97,7 @@ fun EntriesScreen(
                     IconButton(
                         onClick = {
                             if (inputText.isNotBlank()) {
-                                viewModel.submitEntry(inputText)
+                                onSubmitEntry(inputText)
                                 inputText = ""
                             }
                         },

@@ -45,7 +45,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThreadsScreen(
     onNavigateToEntries: (threadId: Int, threadTitle: String) -> Unit,
@@ -53,6 +52,20 @@ fun ThreadsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    ThreadsScreenContent(
+        uiState = uiState,
+        onNavigateToEntries = onNavigateToEntries,
+        onRefresh = viewModel::refresh
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ThreadsScreenContent(
+    uiState: ThreadsUiState,
+    onNavigateToEntries: (threadId: Int, threadTitle: String) -> Unit,
+    onRefresh: () -> Unit
+) {
     when (val state = uiState) {
         is ThreadsUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,7 +76,7 @@ fun ThreadsScreen(
         is ThreadsUiState.Success -> {
             PullToRefreshBox(
                 isRefreshing = state.isRefreshing,
-                onRefresh = viewModel::refresh,
+                onRefresh = onRefresh,
                 modifier = Modifier.fillMaxSize()
             ) {
                 LazyColumn(
@@ -101,7 +114,7 @@ fun ThreadsScreen(
         is ThreadsUiState.Error -> {
             ErrorContent(
                 message = state.message,
-                onRetry = viewModel::refresh
+                onRetry = onRefresh
             )
         }
     }

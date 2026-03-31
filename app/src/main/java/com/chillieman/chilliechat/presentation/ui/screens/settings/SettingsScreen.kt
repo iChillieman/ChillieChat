@@ -42,6 +42,27 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    SettingsScreenContent(
+        uiState = uiState,
+        onNameChanged = viewModel::onNameChanged,
+        onSecretChanged = viewModel::onSecretChanged,
+        onLoginPublic = viewModel::loginPublic,
+        onLoginPrivate = viewModel::loginPrivate,
+        onLogout = viewModel::logout,
+        onDismissError = viewModel::dismissError
+    )
+}
+
+@Composable
+internal fun SettingsScreenContent(
+    uiState: SettingsUiState,
+    onNameChanged: (String) -> Unit,
+    onSecretChanged: (String) -> Unit,
+    onLoginPublic: () -> Unit,
+    onLoginPrivate: () -> Unit,
+    onLogout: () -> Unit,
+    onDismissError: () -> Unit
+) {
     when (val state = uiState) {
         is SettingsUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -52,18 +73,18 @@ fun SettingsScreen(
         is SettingsUiState.Success -> {
             SettingsContent(
                 state = state,
-                onNameChanged = viewModel::onNameChanged,
-                onSecretChanged = viewModel::onSecretChanged,
-                onLoginPublic = viewModel::loginPublic,
-                onLoginPrivate = viewModel::loginPrivate,
-                onLogout = viewModel::logout
+                onNameChanged = onNameChanged,
+                onSecretChanged = onSecretChanged,
+                onLoginPublic = onLoginPublic,
+                onLoginPrivate = onLoginPrivate,
+                onLogout = onLogout
             )
         }
 
         is SettingsUiState.Error -> {
             ErrorContent(
                 message = state.message,
-                onDismiss = viewModel::dismissError
+                onDismiss = onDismissError
             )
         }
     }
