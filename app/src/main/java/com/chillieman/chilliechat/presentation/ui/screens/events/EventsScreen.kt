@@ -3,7 +3,6 @@ package com.chillieman.chilliechat.presentation.ui.screens.events
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -20,9 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,14 +33,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.chillieman.chilliechat.domain.model.Event
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+
+private const val BASE_URL = "https://chillieman.com"
+
+private val imagePool = listOf(
+    "/cosmic0.jpg",
+    "/cosmic1.jpg",
+    "/cosmic2.jpg",
+    "/cosmic3.jpg",
+    "/cosmic4.jpg",
+    "/cosmic5.jpg"
+)
+
+private fun getEventImageUrl(eventId: Int): String =
+    "$BASE_URL${imagePool[eventId % imagePool.size]}"
+
+private enum class EventStatus(val label: String, val color: Color) {
+    ACTIVE("Active", Color(0xFF4CAF50)),
+    ENDED("Ended", Color(0xFFF44336)),
+    UPCOMING("Upcoming", Color(0xFFFFA726))
+}
+
+private fun getEventStatus(event: Event): EventStatus {
+    val now = System.currentTimeMillis() / 1000
+    return when {
+        event.endTime != null && now > event.endTime -> EventStatus.ENDED
+        now < event.startTime -> EventStatus.UPCOMING
+        else -> EventStatus.ACTIVE
+    }
+}
 
 @Composable
 fun EventsScreen(
@@ -54,7 +83,8 @@ fun EventsScreen(
     EventsScreenContent(
         uiState = uiState,
         onNavigateToThreads = onNavigateToThreads,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onToggleActiveOnly = viewModel::toggleActiveOnly
     )
 }
 
@@ -63,7 +93,8 @@ fun EventsScreen(
 internal fun EventsScreenContent(
     uiState: EventsUiState,
     onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onToggleActiveOnly: () -> Unit = {}
 ) {
     when (val state = uiState) {
         is EventsUiState.Loading -> {
@@ -73,34 +104,59 @@ internal fun EventsScreenContent(
         }
 
         is EventsUiState.Success -> {
+            val filteredEvents = if (state.showActiveOnly) {
+                state.events.filter { getEventStatus(it) == EventStatus.ACTIVE }
+            } else {
+                state.events
+            }
+
             PullToRefreshBox(
                 isRefreshing = state.isRefreshing,
                 onRefresh = onRefresh,
                 modifier = Modifier.fillMaxSize()
             ) {
-                if (state.events.isEmpty()) {
-                    Box(
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Filter row
+                    Row(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        EmptyEventsContent()
+                        Checkbox(
+                            checked = state.showActiveOnly,
+                            onCheckedChange = { onToggleActiveOnly() }
+                        )
+                        Text(
+                            text = "Only Show Active Events",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = state.events,
-                            key = { it.id }
-                        ) { event ->
-                            EventCard(
-                                event = event,
-                                onClick = { onNavigateToThreads(event.id, event.title) }
-                            )
+
+                    if (filteredEvents.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            EmptyEventsContent(isFiltered = state.showActiveOnly && state.events.isNotEmpty())
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = filteredEvents,
+                                key = { it.id }
+                            ) { event ->
+                                EventCard(
+                                    event = event,
+                                    onClick = { onNavigateToThreads(event.id, event.title) }
+                                )
+                            }
                         }
                     }
                 }
@@ -121,80 +177,80 @@ private fun EventCard(
     event: Event,
     onClick: () -> Unit
 ) {
+    val status = getEventStatus(event)
+
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = event.title,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background image
+            AsyncImage(
+                model = getEventImageUrl(event.id),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
             )
 
-            if (!event.tags.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    event.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { tag ->
-                        TagChip(tag)
-                    }
-                }
-            }
+            // Dark scrim for readability
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Black.copy(alpha = 0.45f)
+            ) {}
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Schedule,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(4.dp))
+            // Status pill — top right
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = status.color
+            ) {
                 Text(
-                    text = formatTimeRange(event.startTime, event.endTime),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = status.label,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                 )
             }
 
-            if (!event.description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+            // Title + description — bottom left
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(14.dp)
+            ) {
                 Text(
-                    text = event.description,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = event.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    overflow = TextOverflow.Ellipsis
                 )
+                if (!event.description.isNullOrBlank()) {
+                    Text(
+                        text = event.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun TagChip(tag: String) {
-    Surface(
-        shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Text(
-            text = tag,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    }
-}
-
-@Composable
-private fun EmptyEventsContent() {
+private fun EmptyEventsContent(isFiltered: Boolean = false) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -206,12 +262,12 @@ private fun EmptyEventsContent() {
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         )
         Text(
-            text = "No events found",
+            text = if (isFiltered) "No active events right now" else "No events found",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "Pull down to refresh",
+            text = if (isFiltered) "Uncheck the filter to see all events" else "Pull down to refresh",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
@@ -254,21 +310,5 @@ private fun ErrorContent(
                 }
             }
         }
-    }
-}
-
-private fun formatTimestamp(epochSeconds: Long): String {
-    val instant = Instant.ofEpochSecond(epochSeconds)
-    val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
-        .withZone(ZoneId.systemDefault())
-    return formatter.format(instant)
-}
-
-private fun formatTimeRange(startTime: Long, endTime: Long?): String {
-    val start = formatTimestamp(startTime)
-    return if (endTime != null) {
-        "$start \u2014 ${formatTimestamp(endTime)}"
-    } else {
-        start
     }
 }

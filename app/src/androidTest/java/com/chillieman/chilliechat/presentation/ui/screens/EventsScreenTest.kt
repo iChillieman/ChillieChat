@@ -15,6 +15,10 @@ class EventsScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    // Use far-future timestamps so events are "Active" during test
+    private val futureStart = (System.currentTimeMillis() / 1000) - 3600
+    private val futureEnd = (System.currentTimeMillis() / 1000) + 86400
+
     @Test
     fun loadingState_showsProgressIndicator() {
         composeTestRule.setContent {
@@ -26,20 +30,19 @@ class EventsScreenTest {
                 )
             }
         }
-        // CircularProgressIndicator doesn't have text, but we can verify no events text shows
         composeTestRule.onNodeWithText("No events found").assertDoesNotExist()
     }
 
     @Test
     fun successState_showsEventCards() {
         val events = listOf(
-            Event(id = 1, title = "Hackathon 2026", description = "Build cool stuff", startTime = 1711234567L),
-            Event(id = 2, title = "Game Jam", tags = "games,fun", startTime = 1711239999L)
+            Event(id = 1, title = "Hackathon 2026", description = "Build cool stuff", startTime = futureStart, endTime = futureEnd),
+            Event(id = 2, title = "Game Jam", startTime = futureStart, endTime = futureEnd)
         )
         composeTestRule.setContent {
             ChillieChatTheme {
                 EventsScreenContent(
-                    uiState = EventsUiState.Success(events = events),
+                    uiState = EventsUiState.Success(events = events, showActiveOnly = false),
                     onNavigateToThreads = { _, _ -> },
                     onRefresh = {}
                 )
@@ -48,8 +51,43 @@ class EventsScreenTest {
         composeTestRule.onNodeWithText("Hackathon 2026").assertIsDisplayed()
         composeTestRule.onNodeWithText("Game Jam").assertIsDisplayed()
         composeTestRule.onNodeWithText("Build cool stuff").assertIsDisplayed()
-        composeTestRule.onNodeWithText("games").assertIsDisplayed()
-        composeTestRule.onNodeWithText("fun").assertIsDisplayed()
+    }
+
+    @Test
+    fun successState_showsStatusPills() {
+        val events = listOf(
+            Event(id = 1, title = "Active Event", startTime = futureStart, endTime = futureEnd)
+        )
+        composeTestRule.setContent {
+            ChillieChatTheme {
+                EventsScreenContent(
+                    uiState = EventsUiState.Success(events = events, showActiveOnly = false),
+                    onNavigateToThreads = { _, _ -> },
+                    onRefresh = {}
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Active").assertIsDisplayed()
+    }
+
+    @Test
+    fun activeOnlyFilter_hidesEndedEvents() {
+        val now = System.currentTimeMillis() / 1000
+        val events = listOf(
+            Event(id = 1, title = "Active Event", startTime = now - 3600, endTime = now + 3600),
+            Event(id = 2, title = "Ended Event", startTime = now - 7200, endTime = now - 3600)
+        )
+        composeTestRule.setContent {
+            ChillieChatTheme {
+                EventsScreenContent(
+                    uiState = EventsUiState.Success(events = events, showActiveOnly = true),
+                    onNavigateToThreads = { _, _ -> },
+                    onRefresh = {}
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Active Event").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Ended Event").assertDoesNotExist()
     }
 
     @Test
@@ -57,14 +95,13 @@ class EventsScreenTest {
         composeTestRule.setContent {
             ChillieChatTheme {
                 EventsScreenContent(
-                    uiState = EventsUiState.Success(events = emptyList()),
+                    uiState = EventsUiState.Success(events = emptyList(), showActiveOnly = false),
                     onNavigateToThreads = { _, _ -> },
                     onRefresh = {}
                 )
             }
         }
         composeTestRule.onNodeWithText("No events found").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Pull down to refresh").assertIsDisplayed()
     }
 
     @Test
@@ -81,5 +118,19 @@ class EventsScreenTest {
         composeTestRule.onNodeWithText("Something went wrong").assertIsDisplayed()
         composeTestRule.onNodeWithText("Network timeout").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
+
+    @Test
+    fun showActiveOnlyCheckbox_isDisplayed() {
+        composeTestRule.setContent {
+            ChillieChatTheme {
+                EventsScreenContent(
+                    uiState = EventsUiState.Success(events = emptyList()),
+                    onNavigateToThreads = { _, _ -> },
+                    onRefresh = {}
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Only Show Active Events").assertIsDisplayed()
     }
 }
