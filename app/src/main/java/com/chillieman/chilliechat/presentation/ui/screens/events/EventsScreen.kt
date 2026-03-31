@@ -44,7 +44,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(
     onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
@@ -52,6 +51,20 @@ fun EventsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    EventsScreenContent(
+        uiState = uiState,
+        onNavigateToThreads = onNavigateToThreads,
+        onRefresh = viewModel::refresh
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun EventsScreenContent(
+    uiState: EventsUiState,
+    onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
+    onRefresh: () -> Unit
+) {
     when (val state = uiState) {
         is EventsUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -62,7 +75,7 @@ fun EventsScreen(
         is EventsUiState.Success -> {
             PullToRefreshBox(
                 isRefreshing = state.isRefreshing,
-                onRefresh = viewModel::refresh,
+                onRefresh = onRefresh,
                 modifier = Modifier.fillMaxSize()
             ) {
                 if (state.events.isEmpty()) {
@@ -97,7 +110,7 @@ fun EventsScreen(
         is EventsUiState.Error -> {
             ErrorContent(
                 message = state.message,
-                onRetry = viewModel::refresh
+                onRetry = onRefresh
             )
         }
     }
