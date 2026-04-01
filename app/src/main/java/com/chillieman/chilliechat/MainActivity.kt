@@ -4,23 +4,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import com.chillieman.chilliechat.ui.theme.ChillieChatTheme
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.chillieman.chilliechat.presentation.components.ChillieChatTopBar
+import com.chillieman.chilliechat.presentation.navigation.AppNavigation
+import com.chillieman.chilliechat.presentation.navigation.EventsRoute
+import com.chillieman.chilliechat.presentation.navigation.SettingsRoute
+import com.chillieman.chilliechat.presentation.navigation.EntriesRoute
+import com.chillieman.chilliechat.presentation.navigation.ThreadsRoute
+import com.chillieman.chilliechat.presentation.ui.theme.ChillieChatTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -36,58 +39,49 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@PreviewScreenSizes
 @Composable
 fun ChillieChatApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            painterResource(it.icon),
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
-            }
-        }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
+    val isSettingsScreen = currentRoute?.contains("SettingsRoute") == true
+    val isThreadsScreen = currentRoute?.contains("ThreadsRoute") == true
+    val isEntriesScreen = currentRoute?.contains("EntriesRoute") == true
+    val isRootScreen = currentRoute?.contains("EventsRoute") == true || currentRoute == null
+
+    val title = when {
+        isSettingsScreen -> "Settings"
+        isEntriesScreen -> runCatching {
+            navBackStackEntry?.toRoute<EntriesRoute>()?.threadTitle
+        }.getOrNull() ?: "Chat"
+        isThreadsScreen -> runCatching {
+            navBackStackEntry?.toRoute<ThreadsRoute>()?.eventTitle
+        }.getOrNull() ?: "Threads"
+        else -> "ChillieChat"
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+            .union(WindowInsets.ime),
+        topBar = {
+            ChillieChatTopBar(
+                title = title,
+                showSettingsIcon = !isSettingsScreen,
+                showBackButton = !isRootScreen,
+                onSettingsClick = {
+                    navController.navigate(SettingsRoute) {
+                        launchSingleTop = true
+                    }
+                },
+                onBackClick = { navController.popBackStack() }
             )
         }
-    }
-}
-
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
-    HOME("Home", R.drawable.ic_home),
-    FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ChillieChatTheme {
-        Greeting("Android")
+    ) { innerPadding ->
+        AppNavigation(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }
