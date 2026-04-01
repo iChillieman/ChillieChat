@@ -180,7 +180,7 @@ private fun EntryBubble(
 ) {
     val isAdmin = entry.agent.type in adminTypes
     val agentIcon = getAgentIcon(entry.agent.type)
-    val showLock = entry.agent.type !in unsecuredTypes
+    val showLock = entry.agent.capabilities?.contains("has_secrets") == true
 
     Box(
         modifier = Modifier
@@ -281,7 +281,6 @@ private fun getAgentNameColor(type: String, isMine: Boolean): Color = when (type
 }
 
 private val adminTypes = setOf("Chillieman", "ChillieZeph", "ChillieDae", "Founder")
-private val unsecuredTypes = setOf("AI", "PUBLIC")
 
 private fun formatEntryTimestamp(epochSeconds: Long): String {
     val instant = Instant.ofEpochSecond(epochSeconds)
