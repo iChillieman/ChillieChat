@@ -2,23 +2,32 @@ package com.chillieman.chilliechat.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ChillieChat brand colors
+// Brand / Accent colors
 val ChillieBlue = Color(0xFF1E88E5)
 val ChillieBlueDark = Color(0xFF1565C0)
-val ChillieBlueLight = Color(0xFF64B5F6)
-val ChillieSurface = Color(0xFFF5F7FA)
-val ChillieSurfaceDark = Color(0xFF1C1C1E)
-val ChillieGray = Color(0xFFE0E0E0)
-val ChillieGrayDark = Color(0xFF2C2C2E)
 val ChillieAccent = Color(0xFF26A69A)
 val ChillieError = Color(0xFFE53935)
 
-// Dark theme
-val BlueDark80 = Color(0xFF90CAF9)
-val BlueGrayDark80 = Color(0xFFB0BEC5)
-val TealDark80 = Color(0xFF80CBC4)
+// Dark theme surfaces & text (cyber feel)
+val DarkBackground = Color(0xFF0F172A)     // deep dark gray-900-ish
+val DarkSurface = Color(0xFF1E2937)        // gray-800
+val DarkSurfaceVariant = Color(0xFF334155) // gray-700 for bubbles
+val DarkOnSurface = Color(0xFFF1F5F9)
+val DarkOnSurfaceVariant = Color(0xFFCBD5E1)
 
-// Light theme
-val BlueLight40 = Color(0xFF1E88E5)
-val BlueGrayLight40 = Color(0xFF546E7A)
-val TealLight40 = Color(0xFF00897B)
+// Light theme surfaces & text (clean but still chillie)
+val LightBackground = Color(0xFFF8FAFC)
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFF1F5F9)
+val LightOnSurface = Color(0xFF0F172A)
+val LightOnSurfaceVariant = Color(0xFF475569)
+
+// Special agent colors (work in both themes)
+val AdminGold = Color(0xFFFFD700)           // yellow-300 for pulsing admins
+val HumanIndigo = Color(0xFF6366F1)         // indigo for humans
+val AiGreen = Color(0xFF4ADE80)             // green for AI
+val DefaultRed = Color(0xFFF87171)          // fallback
+
+// Input / other
+val InputBackgroundDark = Color(0xFF1E2937)
+val InputBackgroundLight = Color(0xFFF1F5F9)
