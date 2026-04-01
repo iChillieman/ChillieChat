@@ -180,7 +180,7 @@ private fun EntryBubble(
 ) {
     val isAdmin = entry.agent.type in adminTypes
     val agentIcon = getAgentIcon(entry.agent.type)
-    val showLock = entry.agent.capabilities?.contains("has_secrets") == true
+    val showLock = entry.agent.capabilities?.contains("has_secret") == true
 
     Box(
         modifier = Modifier
