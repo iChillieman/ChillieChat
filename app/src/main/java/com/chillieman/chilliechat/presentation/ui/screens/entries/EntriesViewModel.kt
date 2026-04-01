@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chillieman.chilliechat.data.local.AgentPreferencesManager
+import com.chillieman.chilliechat.data.remote.WebSocketManager
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,8 @@ class EntriesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getEntriesUseCase: GetEntriesUseCase,
     private val submitEntryUseCase: SubmitEntryUseCase,
-    private val agentPreferencesManager: AgentPreferencesManager
+    private val agentPreferencesManager: AgentPreferencesManager,
+    private val webSocketManager: WebSocketManager
 ) : ViewModel() {
 
     private val threadId: Int = checkNotNull(savedStateHandle["threadId"])
@@ -31,7 +33,10 @@ class EntriesViewModel @Inject constructor(
 
     private val _hasMore = MutableStateFlow(true)
     private val _isLoadingMore = MutableStateFlow(false)
-    private val _submitError = MutableStateFlow<String?>(null)
+
+    init {
+        webSocketManager.connect(threadId)
+    }
 
     val uiState: StateFlow<EntriesUiState> = combine(
         getEntriesUseCase(threadId)
@@ -89,5 +94,10 @@ class EntriesViewModel @Inject constructor(
                 // Entry failed to send — the local cache flow still shows existing entries
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        webSocketManager.disconnect()
     }
 }

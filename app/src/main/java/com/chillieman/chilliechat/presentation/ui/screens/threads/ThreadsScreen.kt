@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -166,11 +167,12 @@ private fun ThreadCard(
     thread: ChatThread,
     onClick: () -> Unit
 ) {
-    Card(
+    ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -192,13 +194,13 @@ private fun ThreadCard(
                         imageVector = Icons.Default.ChatBubbleOutline,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${thread.entryCount} ${if (thread.entryCount == 1) "entry" else "entries"}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -86,11 +87,12 @@ internal fun EntriesScreenContent(
         is EntriesUiState.Success -> {
             val listState = rememberLazyListState()
 
-            // Auto-scroll to bottom when entries first load or new entries arrive at the bottom
-            val entryCount = state.entries.size
-            LaunchedEffect(entryCount) {
-                if (entryCount > 0) {
-                    listState.animateScrollToItem(entryCount - 1)
+            // Auto-scroll to bottom only when new entries arrive at the end (or initial load).
+            // Pagination loads older entries at the top — lastEntryId stays the same, so no scroll.
+            val lastEntryId = state.entries.lastOrNull()?.id
+            LaunchedEffect(lastEntryId) {
+                if (lastEntryId != null && state.entries.isNotEmpty()) {
+                    listState.animateScrollToItem(state.entries.size - 1)
                 }
             }
 
@@ -110,7 +112,7 @@ internal fun EntriesScreenContent(
                     }
             }
 
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().imePadding()) {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
@@ -273,7 +275,7 @@ private fun getAgentIcon(type: String): String = when (type) {
 
 @Composable
 private fun getAgentNameColor(type: String, isMine: Boolean): Color = when (type) {
-    "Human" -> Color(0xFFC5CAE9) // indigo-200
+    "Human" -> Color(0xFF5C6BC0) // indigo-400, visible in both light and dark
     "AI" -> Color(0xFF4CAF50) // green-400
     else -> if (isMine) MaterialTheme.colorScheme.onPrimaryContainer
             else MaterialTheme.colorScheme.onSurfaceVariant

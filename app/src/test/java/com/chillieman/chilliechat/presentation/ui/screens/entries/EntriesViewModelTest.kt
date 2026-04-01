@@ -8,6 +8,7 @@ import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.domain.model.Agent
 import com.chillieman.chilliechat.domain.model.Entry
 import com.chillieman.chilliechat.domain.model.EntryWithAgent
+import com.chillieman.chilliechat.data.remote.WebSocketManager
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
 import io.mockk.coEvery
@@ -39,10 +40,11 @@ class EntriesViewModelTest {
     private fun createViewModel(
         getEntriesUseCase: GetEntriesUseCase = mockk(),
         submitEntryUseCase: SubmitEntryUseCase = mockk(relaxed = true),
-        prefsManager: AgentPreferencesManager = mockk()
+        prefsManager: AgentPreferencesManager = mockk(),
+        webSocketManager: WebSocketManager = mockk(relaxed = true)
     ): EntriesViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("threadId" to 10, "threadTitle" to "Test Chat"))
-        return EntriesViewModel(savedStateHandle, getEntriesUseCase, submitEntryUseCase, prefsManager)
+        return EntriesViewModel(savedStateHandle, getEntriesUseCase, submitEntryUseCase, prefsManager, webSocketManager)
     }
 
     @Test
