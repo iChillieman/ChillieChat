@@ -33,7 +33,8 @@ class EntryRepositoryImpl @Inject constructor(
                     content = entity.content,
                     tags = entity.tags,
                     timestamp = entity.timestamp,
-                    agent = agent
+                    agent = agent,
+                    isDeleted = entity.isDeleted
                 )
             }
         }

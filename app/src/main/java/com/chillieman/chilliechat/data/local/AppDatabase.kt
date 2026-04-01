@@ -2,6 +2,8 @@ package com.chillieman.chilliechat.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.chillieman.chilliechat.data.local.dao.AgentDao
 import com.chillieman.chilliechat.data.local.dao.EntryDao
 import com.chillieman.chilliechat.data.local.dao.EventDao
@@ -18,7 +20,7 @@ import com.chillieman.chilliechat.data.local.entity.ThreadEntity
         ThreadEntity::class,
         EntryEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,4 +28,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
     abstract fun threadDao(): ThreadDao
     abstract fun entryDao(): EntryDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE entries ADD COLUMN is_deleted INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+    }
 }
