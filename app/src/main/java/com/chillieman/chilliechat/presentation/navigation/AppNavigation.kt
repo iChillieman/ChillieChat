@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.chillieman.chilliechat.presentation.ui.screens.entries.EntriesScreen
 import com.chillieman.chilliechat.presentation.ui.screens.events.EventsScreen
 import com.chillieman.chilliechat.presentation.ui.screens.settings.SettingsScreen
 import com.chillieman.chilliechat.presentation.ui.screens.threads.ThreadsScreen
@@ -33,6 +34,10 @@ fun AppNavigation(
                     navController.navigate(EntriesRoute(threadId, threadTitle))
                 }
             )
+        }
+
+        composable<EntriesRoute> {
+            EntriesScreen()
         }
 
         composable<SettingsRoute> {
