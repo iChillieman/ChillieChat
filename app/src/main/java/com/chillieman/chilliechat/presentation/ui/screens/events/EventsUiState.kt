@@ -7,7 +7,8 @@ sealed interface EventsUiState {
 
     data class Success(
         val events: List<Event> = emptyList(),
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val showActiveOnly: Boolean = true
     ) : EventsUiState
 
     data class Error(val message: String) : EventsUiState

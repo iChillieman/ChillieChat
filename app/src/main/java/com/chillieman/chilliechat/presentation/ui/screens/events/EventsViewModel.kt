@@ -33,7 +33,10 @@ class EventsViewModel @Inject constructor(
                     )
                 }
                 .collect { events ->
-                    _uiState.value = EventsUiState.Success(events = events)
+                    _uiState.update { current ->
+                        val showActiveOnly = (current as? EventsUiState.Success)?.showActiveOnly ?: true
+                        EventsUiState.Success(events = events, showActiveOnly = showActiveOnly)
+                    }
                 }
         }
     }
@@ -51,6 +54,12 @@ class EventsViewModel @Inject constructor(
             _uiState.update {
                 if (it is EventsUiState.Success) it.copy(isRefreshing = false) else it
             }
+        }
+    }
+
+    fun toggleActiveOnly() {
+        _uiState.update {
+            if (it is EventsUiState.Success) it.copy(showActiveOnly = !it.showActiveOnly) else it
         }
     }
 }

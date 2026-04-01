@@ -9,7 +9,9 @@ sealed interface EntriesUiState {
         val threadTitle: String,
         val entries: List<EntryWithAgent>,
         val currentAgentId: Int?,
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val hasMore: Boolean = true,
+        val isLoadingMore: Boolean = false
     ) : EntriesUiState
     data class Error(val message: String) : EntriesUiState
 }
