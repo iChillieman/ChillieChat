@@ -7,5 +7,6 @@ data class EntryWithAgent(
     val content: String,
     val tags: String? = null,
     val timestamp: Long,
-    val agent: Agent
+    val agent: Agent,
+    val isDeleted: Boolean = false
 )

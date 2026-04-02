@@ -31,5 +31,6 @@ data class EntryEntity(
     @ColumnInfo(name = "thread_id") val threadId: Int,
     @ColumnInfo(name = "content") val content: String,
     @ColumnInfo(name = "tags") val tags: String? = null,
-    @ColumnInfo(name = "timestamp") val timestamp: Long
+    @ColumnInfo(name = "timestamp") val timestamp: Long,
+    @ColumnInfo(name = "is_deleted", defaultValue = "0") val isDeleted: Boolean = false
 )

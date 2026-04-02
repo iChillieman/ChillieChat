@@ -5,7 +5,7 @@ import com.chillieman.chilliechat.domain.model.EntryWithAgent
 import kotlinx.coroutines.flow.Flow
 
 interface EntryRepository {
-    fun getEntriesByThreadId(threadId: Int): Flow<List<Entry>>
+    fun getEntriesByThreadId(threadId: Int): Flow<List<EntryWithAgent>>
     suspend fun refreshEntries(threadId: Int, lowestEntryId: Int? = null): Boolean
     suspend fun createEntry(
         content: String,

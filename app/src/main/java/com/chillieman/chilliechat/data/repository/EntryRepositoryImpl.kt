@@ -7,6 +7,7 @@ import com.chillieman.chilliechat.data.mapper.toEntity
 import com.chillieman.chilliechat.data.mapper.toEntryEntity
 import com.chillieman.chilliechat.data.remote.api.EntryApi
 import com.chillieman.chilliechat.data.remote.dto.EntryRequestDto
+import com.chillieman.chilliechat.domain.model.Agent
 import com.chillieman.chilliechat.domain.model.Entry
 import com.chillieman.chilliechat.domain.model.EntryWithAgent
 import com.chillieman.chilliechat.domain.repository.EntryRepository
@@ -20,8 +21,23 @@ class EntryRepositoryImpl @Inject constructor(
     private val agentDao: AgentDao
 ) : EntryRepository {
 
-    override fun getEntriesByThreadId(threadId: Int): Flow<List<Entry>> =
-        entryDao.getEntriesByThreadId(threadId).map { entities -> entities.map { it.toDomain() } }
+    override fun getEntriesByThreadId(threadId: Int): Flow<List<EntryWithAgent>> =
+        entryDao.getEntriesByThreadId(threadId).map { entities ->
+            entities.map { entity ->
+                val agent = agentDao.getAgentByIdDirect(entity.agentId)?.toDomain()
+                    ?: Agent(id = entity.agentId, name = "Agent ${entity.agentId}", type = "PUBLIC", capabilities = null)
+                EntryWithAgent(
+                    id = entity.id,
+                    agentId = entity.agentId,
+                    threadId = entity.threadId,
+                    content = entity.content,
+                    tags = entity.tags,
+                    timestamp = entity.timestamp,
+                    agent = agent,
+                    isDeleted = entity.isDeleted
+                )
+            }
+        }
 
     override suspend fun refreshEntries(threadId: Int, lowestEntryId: Int?): Boolean {
         val response = entryApi.getEntries(threadId, lowestEntryId)
