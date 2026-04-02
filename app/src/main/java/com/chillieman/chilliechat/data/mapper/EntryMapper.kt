@@ -40,7 +40,9 @@ fun EntryWithAgentDetailsDto.toDomain(): EntryWithAgent = EntryWithAgent(
     content = content,
     tags = tags,
     timestamp = timestamp,
-    agent = agent.toDomain()
+    agent = agent.toDomain(),
+    isDeleted = deletedAt != null,
+    isReported = reportedAt != null
 )
 
 fun EntryWithAgentDetailsDto.toEntryEntity(): EntryEntity = EntryEntity(
@@ -49,5 +51,8 @@ fun EntryWithAgentDetailsDto.toEntryEntity(): EntryEntity = EntryEntity(
     threadId = threadId,
     content = content,
     tags = tags,
-    timestamp = timestamp
+    timestamp = timestamp,
+    isDeleted = deletedAt != null,
+    reportedAt = reportedAt,
+    reportedCount = reportedCount
 )

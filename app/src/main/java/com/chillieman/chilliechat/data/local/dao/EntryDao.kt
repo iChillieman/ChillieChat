@@ -24,8 +24,8 @@ interface EntryDao {
     @Query("UPDATE entries SET is_deleted = 1 WHERE id = :entryId")
     suspend fun markEntryDeleted(entryId: Int)
 
-    @Query("UPDATE entries SET reported_at = :reportedAt, reported_count = reported_count + 1 WHERE id = :entryId")
-    suspend fun markEntryReported(entryId: Int, reportedAt: Long)
+    @Query("UPDATE entries SET reported_at = :reportedAt, reported_count = :reportedCount WHERE id = :entryId")
+    suspend fun markEntryReported(entryId: Int, reportedAt: Long, reportedCount: Int)
 
     @Query("DELETE FROM entries WHERE thread_id = :threadId")
     suspend fun deleteEntriesByThreadId(threadId: Int)

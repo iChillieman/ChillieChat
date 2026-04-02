@@ -11,5 +11,8 @@ data class EntryWithAgentDetailsDto(
     @SerialName("content") val content: String,
     @SerialName("tags") val tags: String? = null,
     @SerialName("timestamp") val timestamp: Long,
-    @SerialName("agent") val agent: AgentResponseDto
+    @SerialName("agent") val agent: AgentResponseDto,
+    @SerialName("deleted_at") val deletedAt: Long? = null,
+    @SerialName("reported_at") val reportedAt: Long? = null,
+    @SerialName("reported_count") val reportedCount: Int = 0
 )

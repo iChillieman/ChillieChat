@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class EntryReportedEventDto(
     @SerialName("type") val type: String,
     @SerialName("entry_id") val entryId: Int,
-    @SerialName("thread_id") val threadId: Int
+    @SerialName("reported_at") val reportedAt: Long,
+    @SerialName("reported_count") val reportedCount: Int
 )

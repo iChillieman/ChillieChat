@@ -61,7 +61,7 @@ class WebSocketManager @Inject constructor(
                             entryDao.markEntryDeleted(event.entryId)
                         } else if (type == "ENTRY_REPORTED") {
                             val event = json.decodeFromString<EntryReportedEventDto>(text)
-                            entryDao.markEntryReported(event.entryId, System.currentTimeMillis() / 1000)
+                            entryDao.markEntryReported(event.entryId, event.reportedAt, event.reportedCount)
                         } else {
                             val dto = json.decodeFromString<EntryWithAgentDetailsDto>(text)
                             agentDao.insertAgent(dto.agent.toEntity())

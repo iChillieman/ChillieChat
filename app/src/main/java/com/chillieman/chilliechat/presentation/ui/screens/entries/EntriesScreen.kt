@@ -220,6 +220,7 @@ internal fun EntriesScreenContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ReportDialog(
     onDismiss: () -> Unit,
@@ -234,7 +235,10 @@ private fun ReportDialog(
             Column {
                 Text("Are you sure you want to report this message as inappropriate or offensive?")
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.combinedClickable(onClick = { understood = !understood })
+                ) {
                     Checkbox(
                         checked = understood,
                         onCheckedChange = { understood = it }
