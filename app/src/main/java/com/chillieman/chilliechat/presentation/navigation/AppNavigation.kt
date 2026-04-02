@@ -30,8 +30,8 @@ fun AppNavigation(
 
         composable<ThreadsRoute> {
             ThreadsScreen(
-                onNavigateToEntries = { threadId, threadTitle ->
-                    navController.navigate(EntriesRoute(threadId, threadTitle))
+                onNavigateToEntries = { threadId, threadTitle, eventEndTime ->
+                    navController.navigate(EntriesRoute(threadId, threadTitle, eventEndTime))
                 }
             )
         }

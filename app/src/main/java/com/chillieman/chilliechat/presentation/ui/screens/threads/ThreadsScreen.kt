@@ -48,7 +48,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ThreadsScreen(
-    onNavigateToEntries: (threadId: Int, threadTitle: String) -> Unit,
+    onNavigateToEntries: (threadId: Int, threadTitle: String, eventEndTime: Long?) -> Unit,
     viewModel: ThreadsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,7 +64,7 @@ fun ThreadsScreen(
 @Composable
 internal fun ThreadsScreenContent(
     uiState: ThreadsUiState,
-    onNavigateToEntries: (threadId: Int, threadTitle: String) -> Unit,
+    onNavigateToEntries: (threadId: Int, threadTitle: String, eventEndTime: Long?) -> Unit,
     onRefresh: () -> Unit
 ) {
     when (val state = uiState) {
@@ -104,7 +104,7 @@ internal fun ThreadsScreenContent(
                         ) { thread ->
                             ThreadCard(
                                 thread = thread,
-                                onClick = { onNavigateToEntries(thread.id, thread.title) }
+                                onClick = { onNavigateToEntries(thread.id, thread.title, state.event.endTime) }
                             )
                         }
                     }

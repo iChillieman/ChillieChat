@@ -32,6 +32,7 @@ class EntriesViewModel @Inject constructor(
 
     private val threadId: Int = checkNotNull(savedStateHandle["threadId"])
     private val threadTitle: String = checkNotNull(savedStateHandle["threadTitle"])
+    private val eventEndTime: Long? = savedStateHandle["eventEndTime"]
 
     private val _hasMore = MutableStateFlow(true)
     private val _isLoadingMore = MutableStateFlow(false)
@@ -57,7 +58,8 @@ class EntriesViewModel @Inject constructor(
             alwaysShowReported = prefs.alwaysShowReportedMessages,
             revealedEntryIds = revealedIds,
             hasMore = hasMore,
-            isLoadingMore = isLoadingMore
+            isLoadingMore = isLoadingMore,
+            isArchived = eventEndTime != null && System.currentTimeMillis() / 1000 > eventEndTime
         )
     }.stateIn(
         scope = viewModelScope,

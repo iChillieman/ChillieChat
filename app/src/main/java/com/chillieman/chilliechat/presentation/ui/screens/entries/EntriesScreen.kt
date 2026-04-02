@@ -228,30 +228,46 @@ internal fun EntriesScreenContent(
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Type a message...") },
-                        maxLines = 4
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = {
-                            if (inputText.isNotBlank()) {
-                                onSubmitEntry(inputText)
-                                inputText = ""
-                            }
-                        },
-                        enabled = inputText.isNotBlank()
+                if (state.isArchived) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(0xFF1A1A2E)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+                        Text(
+                            text = "[SIGNAL ARCHIVED] This thread is now READ-ONLY.",
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFB0BEC5),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = inputText,
+                            onValueChange = { inputText = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Type a message...") },
+                            maxLines = 4
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = {
+                                if (inputText.isNotBlank()) {
+                                    onSubmitEntry(inputText)
+                                    inputText = ""
+                                }
+                            },
+                            enabled = inputText.isNotBlank()
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+                        }
                     }
                 }
             }

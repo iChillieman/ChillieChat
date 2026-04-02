@@ -13,7 +13,8 @@ sealed interface EntriesUiState {
         val revealedEntryIds: Set<Int> = emptySet(),
         val isRefreshing: Boolean = false,
         val hasMore: Boolean = true,
-        val isLoadingMore: Boolean = false
+        val isLoadingMore: Boolean = false,
+        val isArchived: Boolean = false
     ) : EntriesUiState
     data class Error(val message: String) : EntriesUiState
 }
