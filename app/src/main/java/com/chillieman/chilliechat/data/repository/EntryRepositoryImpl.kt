@@ -34,7 +34,8 @@ class EntryRepositoryImpl @Inject constructor(
                     tags = entity.tags,
                     timestamp = entity.timestamp,
                     agent = agent,
-                    isDeleted = entity.isDeleted
+                    isDeleted = entity.isDeleted,
+                    isReported = entity.reportedAt != null
                 )
             }
         }
@@ -64,6 +65,10 @@ class EntryRepositoryImpl @Inject constructor(
         )
         entryDao.insertEntry(dto.toEntity())
         return dto.toDomain()
+    }
+
+    override suspend fun reportEntry(entryId: Int) {
+        entryApi.reportEntry(entryId)
     }
 
     override suspend fun getEntriesForAgent(

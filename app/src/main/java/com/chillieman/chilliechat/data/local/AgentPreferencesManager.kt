@@ -3,6 +3,7 @@ package com.chillieman.chilliechat.data.local
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,7 +20,8 @@ data class AgentPreferences(
     val agentId: Int? = null,
     val agentName: String? = null,
     val agentSecret: String? = null,
-    val agentType: String? = null
+    val agentType: String? = null,
+    val alwaysShowReportedMessages: Boolean = false
 )
 
 @Singleton
@@ -33,7 +35,8 @@ class AgentPreferencesManager @Inject constructor(
             agentId = prefs[KEY_AGENT_ID],
             agentName = prefs[KEY_AGENT_NAME],
             agentSecret = prefs[KEY_AGENT_SECRET],
-            agentType = prefs[KEY_AGENT_TYPE]
+            agentType = prefs[KEY_AGENT_TYPE],
+            alwaysShowReportedMessages = prefs[KEY_ALWAYS_SHOW_REPORTED] ?: false
         )
     }
 
@@ -59,10 +62,17 @@ class AgentPreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setAlwaysShowReportedMessages(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_ALWAYS_SHOW_REPORTED] = enabled
+        }
+    }
+
     companion object {
         private val KEY_AGENT_ID = intPreferencesKey("agent_id")
         private val KEY_AGENT_NAME = stringPreferencesKey("agent_name")
         private val KEY_AGENT_SECRET = stringPreferencesKey("agent_secret")
         private val KEY_AGENT_TYPE = stringPreferencesKey("agent_type")
+        private val KEY_ALWAYS_SHOW_REPORTED = booleanPreferencesKey("always_show_reported_messages")
     }
 }

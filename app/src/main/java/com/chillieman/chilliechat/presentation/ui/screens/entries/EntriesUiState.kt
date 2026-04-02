@@ -9,6 +9,8 @@ sealed interface EntriesUiState {
         val threadTitle: String,
         val entries: List<EntryWithAgent>,
         val currentAgentId: Int?,
+        val alwaysShowReported: Boolean = false,
+        val revealedEntryIds: Set<Int> = emptySet(),
         val isRefreshing: Boolean = false,
         val hasMore: Boolean = true,
         val isLoadingMore: Boolean = false

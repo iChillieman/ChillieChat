@@ -18,4 +18,5 @@ interface EntryRepository {
         threadId: String? = null,
         agentSecret: String? = null
     ): List<EntryWithAgent>
+    suspend fun reportEntry(entryId: Int)
 }

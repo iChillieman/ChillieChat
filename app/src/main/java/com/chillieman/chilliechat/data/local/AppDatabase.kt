@@ -20,7 +20,7 @@ import com.chillieman.chilliechat.data.local.entity.ThreadEntity
         ThreadEntity::class,
         EntryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,6 +33,13 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE entries ADD COLUMN is_deleted INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE entries ADD COLUMN reported_at INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE entries ADD COLUMN reported_count INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

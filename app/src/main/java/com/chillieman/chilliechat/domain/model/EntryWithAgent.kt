@@ -8,5 +8,6 @@ data class EntryWithAgent(
     val tags: String? = null,
     val timestamp: Long,
     val agent: Agent,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val isReported: Boolean = false
 )

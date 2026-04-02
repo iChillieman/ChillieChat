@@ -9,7 +9,8 @@ sealed interface SettingsUiState {
         val currentAgent: Agent? = null,
         val nameInput: String = "",
         val secretInput: String = "",
-        val isSubmitting: Boolean = false
+        val isSubmitting: Boolean = false,
+        val alwaysShowReported: Boolean = false
     ) : SettingsUiState
 
     data class Error(val message: String) : SettingsUiState

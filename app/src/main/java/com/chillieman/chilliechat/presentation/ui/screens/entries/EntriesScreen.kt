@@ -6,12 +6,16 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,13 +26,18 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -61,7 +70,10 @@ fun EntriesScreen(
     EntriesScreenContent(
         uiState = uiState,
         onSubmitEntry = viewModel::submitEntry,
-        onLoadMore = viewModel::loadOlderEntries
+        onLoadMore = viewModel::loadOlderEntries,
+        onReportEntry = viewModel::reportEntry,
+        onRevealEntry = viewModel::revealEntry,
+        onSetAlwaysShowReported = viewModel::setAlwaysShowReported
     )
 }
 
@@ -69,9 +81,14 @@ fun EntriesScreen(
 internal fun EntriesScreenContent(
     uiState: EntriesUiState,
     onSubmitEntry: (String) -> Unit,
-    onLoadMore: () -> Unit = {}
+    onLoadMore: () -> Unit = {},
+    onReportEntry: (Int) -> Unit = {},
+    onRevealEntry: (Int) -> Unit = {},
+    onSetAlwaysShowReported: (Boolean) -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("") }
+    var reportDialogEntryId by remember { mutableStateOf<Int?>(null) }
+    var uncensorDialogEntryId by remember { mutableStateOf<Int?>(null) }
 
     when (val state = uiState) {
         is EntriesUiState.Loading -> {
@@ -87,8 +104,6 @@ internal fun EntriesScreenContent(
         is EntriesUiState.Success -> {
             val listState = rememberLazyListState()
 
-            // Auto-scroll to bottom only when new entries arrive at the end (or initial load).
-            // Pagination loads older entries at the top — lastEntryId stays the same, so no scroll.
             val lastEntryId = state.entries.lastOrNull()?.id
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
@@ -96,7 +111,6 @@ internal fun EntriesScreenContent(
                 }
             }
 
-            // Detect scroll to top for pagination
             val shouldLoadMore by remember {
                 derivedStateOf {
                     val firstVisible = listState.firstVisibleItemIndex
@@ -136,9 +150,16 @@ internal fun EntriesScreenContent(
                         items = state.entries,
                         key = { it.id }
                     ) { entry ->
+                        val isContentHidden = entry.isReported
+                                && !state.alwaysShowReported
+                                && entry.id !in state.revealedEntryIds
+
                         EntryBubble(
                             entry = entry,
-                            isMine = entry.agent.id == state.currentAgentId
+                            isMine = entry.agent.id == state.currentAgentId,
+                            isContentHidden = isContentHidden,
+                            onLongPress = { reportDialogEntryId = entry.id },
+                            onShowAnyways = { uncensorDialogEntryId = entry.id }
                         )
                     }
                 }
@@ -172,12 +193,127 @@ internal fun EntriesScreenContent(
             }
         }
     }
+
+    // Report Confirmation Dialog
+    reportDialogEntryId?.let { entryId ->
+        ReportDialog(
+            onDismiss = { reportDialogEntryId = null },
+            onConfirm = {
+                onReportEntry(entryId)
+                reportDialogEntryId = null
+            }
+        )
+    }
+
+    // Uncensor Dialog
+    uncensorDialogEntryId?.let { entryId ->
+        UncensorDialog(
+            onDismiss = { uncensorDialogEntryId = null },
+            onReveal = { alwaysShow ->
+                onRevealEntry(entryId)
+                if (alwaysShow) {
+                    onSetAlwaysShowReported(true)
+                }
+                uncensorDialogEntryId = null
+            }
+        )
+    }
 }
 
 @Composable
+private fun ReportDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    var understood by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Report Message") },
+        text = {
+            Column {
+                Text("Are you sure you want to report this message as inappropriate or offensive?")
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = understood,
+                        onCheckedChange = { understood = it }
+                    )
+                    Text("I Understand", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = understood
+            ) {
+                Text("Submit")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun UncensorDialog(
+    onDismiss: () -> Unit,
+    onReveal: (alwaysShow: Boolean) -> Unit
+) {
+    var wantToReveal by remember { mutableStateOf(false) }
+    var alwaysShow by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Reported Content") },
+        text = {
+            Column {
+                Text("This message was reported as inappropriate or misleading. Are you sure you want to view it?")
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = wantToReveal,
+                        onCheckedChange = { wantToReveal = it }
+                    )
+                    Text("Yes, I want to reveal this message", style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = alwaysShow,
+                        onCheckedChange = { alwaysShow = it }
+                    )
+                    Text("Always Show Reported Messages", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onReveal(alwaysShow) },
+                enabled = wantToReveal
+            ) {
+                Text("Reveal")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
 private fun EntryBubble(
     entry: EntryWithAgent,
-    isMine: Boolean
+    isMine: Boolean,
+    isContentHidden: Boolean = false,
+    onLongPress: () -> Unit = {},
+    onShowAnyways: () -> Unit = {}
 ) {
     val isAdmin = entry.agent.type in adminTypes
     val agentIcon = getAgentIcon(entry.agent.type)
@@ -195,10 +331,14 @@ private fun EntryBubble(
                 isAdmin -> Color(0xFF1A1A2E)
                 isMine -> MaterialTheme.colorScheme.primaryContainer
                 else -> MaterialTheme.colorScheme.surfaceVariant
-            }
+            },
+            modifier = Modifier.combinedClickable(
+                onClick = {},
+                onLongClick = onLongPress
+            )
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
-                // Agent header: icon + name + lock + timestamp
+                // Agent header: icon + name + lock + flag + timestamp
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = agentIcon)
                     Spacer(modifier = Modifier.width(4.dp))
@@ -226,6 +366,16 @@ private fun EntryBubble(
                             else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         }
                     )
+                    // Red flag for reported entries
+                    if (entry.isReported) {
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Default.Flag,
+                            contentDescription = "Reported",
+                            modifier = Modifier.size(14.dp),
+                            tint = Color(0xFFE53935)
+                        )
+                    }
                 }
                 // Entry content
                 if (entry.isDeleted) {
@@ -240,6 +390,29 @@ private fun EntryBubble(
                             else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         }
                     )
+                } else if (isContentHidden) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Message has been reported.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontStyle = FontStyle.Italic
+                            ),
+                            color = when {
+                                isAdmin -> Color.White.copy(alpha = 0.5f)
+                                isMine -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            }
+                        )
+                        OutlinedButton(
+                            onClick = onShowAnyways,
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text(
+                                text = "Show Anyways",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
                 } else {
                     Text(
                         text = entry.content,
@@ -289,8 +462,8 @@ private fun getAgentIcon(type: String): String = when (type) {
 
 @Composable
 private fun getAgentNameColor(type: String, isMine: Boolean): Color = when (type) {
-    "Human" -> Color(0xFF5C6BC0) // indigo-400, visible in both light and dark
-    "AI" -> Color(0xFF4CAF50) // green-400
+    "Human" -> Color(0xFF5C6BC0)
+    "AI" -> Color(0xFF4CAF50)
     else -> if (isMine) MaterialTheme.colorScheme.onPrimaryContainer
             else MaterialTheme.colorScheme.onSurfaceVariant
 }

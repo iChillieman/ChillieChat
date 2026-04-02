@@ -8,6 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface EntryApi {
@@ -31,4 +32,9 @@ interface EntryApi {
     suspend fun createEntry(
         @Body request: EntryRequestDto
     ): EntryDto
+
+    @POST("/api/entries/{entry_id}/report")
+    suspend fun reportEntry(
+        @Path("entry_id") entryId: Int
+    )
 }

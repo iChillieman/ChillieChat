@@ -43,7 +43,8 @@ class SettingsViewModel @Inject constructor(
                 _uiState.value = SettingsUiState.Success(
                     currentAgent = agent,
                     nameInput = prefs.agentName ?: "",
-                    secretInput = prefs.agentSecret ?: ""
+                    secretInput = prefs.agentSecret ?: "",
+                    alwaysShowReported = prefs.alwaysShowReportedMessages
                 )
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error("Failed to load settings: ${e.message}")
@@ -100,6 +101,15 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             agentPreferencesManager.clearAgent()
             _uiState.value = SettingsUiState.Success()
+        }
+    }
+
+    fun toggleAlwaysShowReported(enabled: Boolean) {
+        viewModelScope.launch {
+            agentPreferencesManager.setAlwaysShowReportedMessages(enabled)
+            _uiState.update { state ->
+                if (state is SettingsUiState.Success) state.copy(alwaysShowReported = enabled) else state
+            }
         }
     }
 

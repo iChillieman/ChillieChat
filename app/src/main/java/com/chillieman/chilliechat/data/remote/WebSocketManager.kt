@@ -5,6 +5,7 @@ import com.chillieman.chilliechat.data.local.dao.EntryDao
 import com.chillieman.chilliechat.data.mapper.toEntity
 import com.chillieman.chilliechat.data.mapper.toEntryEntity
 import com.chillieman.chilliechat.data.remote.dto.EntryDeletedEventDto
+import com.chillieman.chilliechat.data.remote.dto.EntryReportedEventDto
 import com.chillieman.chilliechat.data.remote.dto.EntryWithAgentDetailsDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,9 @@ class WebSocketManager @Inject constructor(
                         if (type == "ENTRY_DELETED") {
                             val event = json.decodeFromString<EntryDeletedEventDto>(text)
                             entryDao.markEntryDeleted(event.entryId)
+                        } else if (type == "ENTRY_REPORTED") {
+                            val event = json.decodeFromString<EntryReportedEventDto>(text)
+                            entryDao.markEntryReported(event.entryId, System.currentTimeMillis() / 1000)
                         } else {
                             val dto = json.decodeFromString<EntryWithAgentDetailsDto>(text)
                             agentDao.insertAgent(dto.agent.toEntity())

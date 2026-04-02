@@ -32,5 +32,7 @@ data class EntryEntity(
     @ColumnInfo(name = "content") val content: String,
     @ColumnInfo(name = "tags") val tags: String? = null,
     @ColumnInfo(name = "timestamp") val timestamp: Long,
-    @ColumnInfo(name = "is_deleted", defaultValue = "0") val isDeleted: Boolean = false
+    @ColumnInfo(name = "is_deleted", defaultValue = "0") val isDeleted: Boolean = false,
+    @ColumnInfo(name = "reported_at") val reportedAt: Long? = null,
+    @ColumnInfo(name = "reported_count", defaultValue = "0") val reportedCount: Int = 0
 )

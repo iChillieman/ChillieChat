@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.data.remote.WebSocketManager
+import com.chillieman.chilliechat.domain.repository.EntryRepository
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +26,8 @@ class EntriesViewModel @Inject constructor(
     private val getEntriesUseCase: GetEntriesUseCase,
     private val submitEntryUseCase: SubmitEntryUseCase,
     private val agentPreferencesManager: AgentPreferencesManager,
-    private val webSocketManager: WebSocketManager
+    private val webSocketManager: WebSocketManager,
+    private val entryRepository: EntryRepository
 ) : ViewModel() {
 
     private val threadId: Int = checkNotNull(savedStateHandle["threadId"])
@@ -33,6 +35,7 @@ class EntriesViewModel @Inject constructor(
 
     private val _hasMore = MutableStateFlow(true)
     private val _isLoadingMore = MutableStateFlow(false)
+    private val _revealedEntryIds = MutableStateFlow<Set<Int>>(emptySet())
 
     init {
         webSocketManager.connect(threadId)
@@ -47,13 +50,16 @@ class EntriesViewModel @Inject constructor(
             .catch { emit(emptyList()) },
         agentPreferencesManager.agentPreferences,
         _hasMore,
-        _isLoadingMore
-    ) { entries, prefs, hasMore, isLoadingMore ->
+        _isLoadingMore,
+        _revealedEntryIds
+    ) { entries, prefs, hasMore, isLoadingMore, revealedIds ->
         EntriesUiState.Success(
             threadId = threadId,
             threadTitle = threadTitle,
             entries = entries,
             currentAgentId = prefs.agentId,
+            alwaysShowReported = prefs.alwaysShowReportedMessages,
+            revealedEntryIds = revealedIds,
             hasMore = hasMore,
             isLoadingMore = isLoadingMore
         )
@@ -93,6 +99,26 @@ class EntriesViewModel @Inject constructor(
             } catch (_: Exception) {
                 // Entry failed to send — the local cache flow still shows existing entries
             }
+        }
+    }
+
+    fun reportEntry(entryId: Int) {
+        viewModelScope.launch {
+            try {
+                entryRepository.reportEntry(entryId)
+            } catch (_: Exception) {
+                // Report failed silently — user can try again
+            }
+        }
+    }
+
+    fun revealEntry(entryId: Int) {
+        _revealedEntryIds.value = _revealedEntryIds.value + entryId
+    }
+
+    fun setAlwaysShowReported(enabled: Boolean) {
+        viewModelScope.launch {
+            agentPreferencesManager.setAlwaysShowReportedMessages(enabled)
         }
     }
 

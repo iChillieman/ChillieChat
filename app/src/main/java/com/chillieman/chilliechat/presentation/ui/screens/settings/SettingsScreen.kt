@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,7 +50,8 @@ fun SettingsScreen(
         onLoginPublic = viewModel::loginPublic,
         onLoginPrivate = viewModel::loginPrivate,
         onLogout = viewModel::logout,
-        onDismissError = viewModel::dismissError
+        onDismissError = viewModel::dismissError,
+        onToggleAlwaysShowReported = viewModel::toggleAlwaysShowReported
     )
 }
 
@@ -61,7 +63,8 @@ internal fun SettingsScreenContent(
     onLoginPublic: () -> Unit,
     onLoginPrivate: () -> Unit,
     onLogout: () -> Unit,
-    onDismissError: () -> Unit
+    onDismissError: () -> Unit,
+    onToggleAlwaysShowReported: (Boolean) -> Unit
 ) {
     when (val state = uiState) {
         is SettingsUiState.Loading -> {
@@ -77,7 +80,8 @@ internal fun SettingsScreenContent(
                 onSecretChanged = onSecretChanged,
                 onLoginPublic = onLoginPublic,
                 onLoginPrivate = onLoginPrivate,
-                onLogout = onLogout
+                onLogout = onLogout,
+                onToggleAlwaysShowReported = onToggleAlwaysShowReported
             )
         }
 
@@ -97,7 +101,8 @@ private fun SettingsContent(
     onSecretChanged: (String) -> Unit,
     onLoginPublic: () -> Unit,
     onLoginPrivate: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onToggleAlwaysShowReported: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -223,6 +228,45 @@ private fun SettingsContent(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+
+        // Content Preferences Section
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Content Preferences",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Always Show Reported Messages",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Reported messages will be visible without needing to reveal them individually.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Switch(
+                    checked = state.alwaysShowReported,
+                    onCheckedChange = onToggleAlwaysShowReported
+                )
+            }
         }
     }
 }
