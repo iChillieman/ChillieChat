@@ -43,10 +43,6 @@ class EntriesViewModel @Inject constructor(
 
     val uiState: StateFlow<EntriesUiState> = combine(
         getEntriesUseCase(threadId)
-            .onStart {
-                try { getEntriesUseCase.refresh(threadId) }
-                catch (_: Exception) { /* Cached data still flows */ }
-            }
             .catch { emit(emptyList()) },
         agentPreferencesManager.agentPreferences,
         _hasMore,
