@@ -47,7 +47,7 @@ class SettingsViewModel @Inject constructor(
                     alwaysShowReported = prefs.alwaysShowReportedMessages
                 )
             } catch (e: Exception) {
-                _uiState.value = SettingsUiState.Error("Failed to load settings: ${e.message}")
+                _uiState.value = SettingsUiState.Error("Failed to load saved settings")
             }
         }
     }

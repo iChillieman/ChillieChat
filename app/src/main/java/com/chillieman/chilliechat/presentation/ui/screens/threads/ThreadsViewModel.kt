@@ -43,9 +43,7 @@ class ThreadsViewModel @Inject constructor(
                 if (current is ThreadsUiState.Success) {
                     _uiState.value = current.copy(isRefreshing = false)
                 } else {
-                    _uiState.value = ThreadsUiState.Error(
-                        e.message ?: "Failed to refresh threads"
-                    )
+                    _uiState.value = ThreadsUiState.Error("Failed to refresh threads")
                 }
             }
         }
@@ -60,9 +58,7 @@ class ThreadsViewModel @Inject constructor(
                     threads = result.threads
                 )
             } catch (e: Exception) {
-                _uiState.value = ThreadsUiState.Error(
-                    e.message ?: "Failed to load threads"
-                )
+                _uiState.value = ThreadsUiState.Error("Failed to load threads")
             }
         }
     }

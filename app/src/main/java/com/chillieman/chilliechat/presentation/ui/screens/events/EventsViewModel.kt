@@ -28,9 +28,7 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch {
             getEventsUseCase()
                 .catch { e ->
-                    _uiState.value = EventsUiState.Error(
-                        e.message ?: "Failed to load events"
-                    )
+                    _uiState.value = EventsUiState.Error("Failed to load events")
                 }
                 .collect { events ->
                     _uiState.update { current ->
