@@ -96,11 +96,13 @@ internal fun EntriesScreenContent(
                 CircularProgressIndicator()
             }
         }
+
         is EntriesUiState.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(text = state.message, color = MaterialTheme.colorScheme.error)
             }
         }
+
         is EntriesUiState.Success -> {
             val listState = rememberLazyListState()
 
@@ -278,19 +280,33 @@ private fun UncensorDialog(
             Column {
                 Text("This message was reported as inappropriate or misleading. Are you sure you want to view it?")
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.combinedClickable(onClick = {
+                        wantToReveal = !wantToReveal
+                    })
+                ) {
                     Checkbox(
                         checked = wantToReveal,
                         onCheckedChange = { wantToReveal = it }
                     )
-                    Text("Yes, I want to reveal this message", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Yes, I want to reveal this message",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.combinedClickable(onClick = { alwaysShow = !alwaysShow })
+                ) {
                     Checkbox(
                         checked = alwaysShow,
                         onCheckedChange = { alwaysShow = it }
                     )
-                    Text("Always Show Reported Messages", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Always Show Reported Messages",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         },
@@ -469,7 +485,7 @@ private fun getAgentNameColor(type: String, isMine: Boolean): Color = when (type
     "Human" -> Color(0xFF5C6BC0)
     "AI" -> Color(0xFF4CAF50)
     else -> if (isMine) MaterialTheme.colorScheme.onPrimaryContainer
-            else MaterialTheme.colorScheme.onSurfaceVariant
+    else MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 private val adminTypes = setOf("Chillieman", "ChillieZeph", "ChillieDae", "Founder")
