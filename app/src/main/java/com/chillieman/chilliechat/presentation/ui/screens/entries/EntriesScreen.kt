@@ -110,8 +110,16 @@ internal fun EntriesScreenContent(
             val lastEntryId = state.entries.lastOrNull()?.id
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
-                    listState.animateScrollToItem(state.entries.size - 1)
-                    initialScrollDone = true
+                    if(!initialScrollDone) {
+                        // Snap to bottom on first arrival/ initial load
+                        listState.scrollToItem(state.entries.size - 1)
+                        initialScrollDone = true
+                    } else {
+                        // If new entries arrive vai WebSocket...
+                        // Only scroll to the very bottom if the user is AT the bottom
+                        // (If the user is reading older history don't scroll them to the bottom...)
+                        listState.animateScrollToItem(state.entries.size - 1)
+                    }
                 }
             }
 
