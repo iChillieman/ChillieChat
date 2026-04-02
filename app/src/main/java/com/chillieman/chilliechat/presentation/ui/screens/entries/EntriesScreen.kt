@@ -105,18 +105,20 @@ internal fun EntriesScreenContent(
 
         is EntriesUiState.Success -> {
             val listState = rememberLazyListState()
+            var initialScrollDone by remember { mutableStateOf(false) }
 
             val lastEntryId = state.entries.lastOrNull()?.id
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
                     listState.animateScrollToItem(state.entries.size - 1)
+                    initialScrollDone = true
                 }
             }
 
             val shouldLoadMore by remember {
                 derivedStateOf {
                     val firstVisible = listState.firstVisibleItemIndex
-                    firstVisible <= 2 && state.hasMore && !state.isLoadingMore
+                    initialScrollDone && firstVisible <= 2 && state.hasMore && !state.isLoadingMore
                 }
             }
 
