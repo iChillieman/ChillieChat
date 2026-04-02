@@ -1,4 +1,4 @@
-# Critical Path 7: Google Play Compliance (Reporting & Moderation)
+# Critical Path: Google Play Compliance (Reporting & Moderation)
 
 **Objective:**
 Implement user reporting functionality to comply with Google Play Developer Policies regarding AI-Generated Content. This requires backend database modifications, a new API endpoint, WebSocket broadcasts, and comprehensive Android UI logic to hide/reveal reported content.
