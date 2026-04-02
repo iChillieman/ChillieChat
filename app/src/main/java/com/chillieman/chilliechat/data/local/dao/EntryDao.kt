@@ -21,6 +21,9 @@ interface EntryDao {
     @Upsert
     suspend fun insertEntry(entry: EntryEntity)
 
+    @Query("UPDATE entries SET is_deleted = 1 WHERE id = :entryId")
+    suspend fun markEntryDeleted(entryId: Int)
+
     @Query("DELETE FROM entries WHERE thread_id = :threadId")
     suspend fun deleteEntriesByThreadId(threadId: Int)
 
