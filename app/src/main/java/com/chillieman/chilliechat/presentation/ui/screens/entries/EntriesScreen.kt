@@ -44,9 +44,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -103,22 +105,44 @@ internal fun EntriesScreenContent(
             }
         }
 
+
+
         is EntriesUiState.Success -> {
             val listState = rememberLazyListState()
+            val coroutineScope = rememberCoroutineScope()
             var initialScrollDone by remember { mutableStateOf(false) }
+            var showNewMessageButton by remember { mutableStateOf(false) }
+
+            val isNearBottom by remember {
+                derivedStateOf {
+                    val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                    val totalItems = listState.layoutInfo.totalItemsCount
+                    totalItems - lastVisibleIndex <= 5
+                }
+            }
+
+            // Hide the button when user scrolls to bottom
+            LaunchedEffect(Unit) {
+                snapshotFlow { isNearBottom }
+                    .distinctUntilChanged()
+                    .collect { nearBottom ->
+                        if (nearBottom) showNewMessageButton = false
+                    }
+            }
 
             val lastEntryId = state.entries.lastOrNull()?.id
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
-                    if(!initialScrollDone) {
-                        // Snap to bottom on first arrival/ initial load
+                    if (!initialScrollDone) {
+                        // Snap to bottom on first arrival / initial load
                         listState.scrollToItem(state.entries.size - 1)
                         initialScrollDone = true
-                    } else {
-                        // If new entries arrive vai WebSocket...
-                        // Only scroll to the very bottom if the user is AT the bottom
-                        // (If the user is reading older history don't scroll them to the bottom...)
+                    } else if (isNearBottom) {
+                        // User is near bottom — smooth scroll to new message
                         listState.animateScrollToItem(state.entries.size - 1)
+                    } else {
+                        // User is reading older history — don't interrupt, show button
+                        showNewMessageButton = true
                     }
                 }
             }
@@ -139,40 +163,68 @@ internal fun EntriesScreenContent(
             }
 
             Column(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 12.dp)
-                ) {
-                    if (state.isLoadingMore) {
-                        item(key = "loading_more") {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp)
+                    ) {
+                        if (state.isLoadingMore) {
+                            item(key = "loading_more") {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
                             }
+                        }
+
+                        items(
+                            items = state.entries,
+                            key = { it.id }
+                        ) { entry ->
+                            val isContentHidden = entry.isReported
+                                    && !state.alwaysShowReported
+                                    && entry.id !in state.revealedEntryIds
+
+                            EntryBubble(
+                                entry = entry,
+                                isMine = entry.agent.id == state.currentAgentId,
+                                isContentHidden = isContentHidden,
+                                onLongPress = { reportDialogEntryId = entry.id },
+                                onShowAnyways = { uncensorDialogEntryId = entry.id }
+                            )
                         }
                     }
 
-                    items(
-                        items = state.entries,
-                        key = { it.id }
-                    ) { entry ->
-                        val isContentHidden = entry.isReported
-                                && !state.alwaysShowReported
-                                && entry.id !in state.revealedEntryIds
-
-                        EntryBubble(
-                            entry = entry,
-                            isMine = entry.agent.id == state.currentAgentId,
-                            isContentHidden = isContentHidden,
-                            onLongPress = { reportDialogEntryId = entry.id },
-                            onShowAnyways = { uncensorDialogEntryId = entry.id }
-                        )
+                    // Floating "View New Messages" button
+                    if (showNewMessageButton) {
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shadowElevation = 4.dp
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    showNewMessageButton = false
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(state.entries.size - 1)
+                                    }
+                                }
+                            ) {
+                                Text(
+                                    text = "\u2B07 View New Messages",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
                     }
                 }
 
