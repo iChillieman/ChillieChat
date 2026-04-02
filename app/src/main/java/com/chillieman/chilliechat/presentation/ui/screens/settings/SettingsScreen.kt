@@ -31,8 +31,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -267,6 +270,24 @@ private fun SettingsContent(
                     onCheckedChange = onToggleAlwaysShowReported
                 )
             }
+        }
+
+        // Privacy Policy Section
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Legal",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        val context = LocalContext.current
+        OutlinedButton(
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://chillieman.com/privacy"))
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Privacy Policy")
         }
     }
 }
