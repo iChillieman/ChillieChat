@@ -10,7 +10,8 @@ sealed interface SettingsUiState {
         val nameInput: String = "",
         val secretInput: String = "",
         val isSubmitting: Boolean = false,
-        val alwaysShowReported: Boolean = false
+        val alwaysShowReported: Boolean = false,
+        val soundEnabled: Boolean = true
     ) : SettingsUiState
 
     data class Error(val message: String) : SettingsUiState

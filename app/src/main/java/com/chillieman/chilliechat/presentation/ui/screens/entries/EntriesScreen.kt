@@ -168,7 +168,7 @@ internal fun EntriesScreenContent(
                     }
                     // Chime or vibrate for new messages from other agents
                     val isFromOtherAgent = lastEntry?.agentId != state.currentAgentId
-                    if (previousLastEntryId != null && isFromOtherAgent) {
+                    if (previousLastEntryId != null && isFromOtherAgent && state.soundEnabled) {
                         notifyNewMessage(context)
                     }
                     previousLastEntryId = lastEntryId

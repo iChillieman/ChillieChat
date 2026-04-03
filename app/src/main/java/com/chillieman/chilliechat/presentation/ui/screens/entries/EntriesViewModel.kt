@@ -59,7 +59,8 @@ class EntriesViewModel @Inject constructor(
             revealedEntryIds = revealedIds,
             hasMore = hasMore,
             isLoadingMore = isLoadingMore,
-            isArchived = eventEndTime != null && System.currentTimeMillis() / 1000 > eventEndTime
+            isArchived = eventEndTime != null && System.currentTimeMillis() / 1000 > eventEndTime,
+            soundEnabled = prefs.soundEnabled
         )
     }.stateIn(
         scope = viewModelScope,

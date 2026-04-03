@@ -14,7 +14,8 @@ sealed interface EntriesUiState {
         val isRefreshing: Boolean = false,
         val hasMore: Boolean = true,
         val isLoadingMore: Boolean = false,
-        val isArchived: Boolean = false
+        val isArchived: Boolean = false,
+        val soundEnabled: Boolean = true
     ) : EntriesUiState
     data class Error(val message: String) : EntriesUiState
 }

@@ -54,7 +54,8 @@ fun SettingsScreen(
         onLoginPrivate = viewModel::loginPrivate,
         onLogout = viewModel::logout,
         onDismissError = viewModel::dismissError,
-        onToggleAlwaysShowReported = viewModel::toggleAlwaysShowReported
+        onToggleAlwaysShowReported = viewModel::toggleAlwaysShowReported,
+        onToggleSoundEnabled = viewModel::toggleSoundEnabled
     )
 }
 
@@ -67,7 +68,8 @@ internal fun SettingsScreenContent(
     onLoginPrivate: () -> Unit,
     onLogout: () -> Unit,
     onDismissError: () -> Unit,
-    onToggleAlwaysShowReported: (Boolean) -> Unit
+    onToggleAlwaysShowReported: (Boolean) -> Unit,
+    onToggleSoundEnabled: (Boolean) -> Unit
 ) {
     when (val state = uiState) {
         is SettingsUiState.Loading -> {
@@ -84,7 +86,8 @@ internal fun SettingsScreenContent(
                 onLoginPublic = onLoginPublic,
                 onLoginPrivate = onLoginPrivate,
                 onLogout = onLogout,
-                onToggleAlwaysShowReported = onToggleAlwaysShowReported
+                onToggleAlwaysShowReported = onToggleAlwaysShowReported,
+                onToggleSoundEnabled = onToggleSoundEnabled
             )
         }
 
@@ -105,7 +108,8 @@ private fun SettingsContent(
     onLoginPublic: () -> Unit,
     onLoginPrivate: () -> Unit,
     onLogout: () -> Unit,
-    onToggleAlwaysShowReported: (Boolean) -> Unit
+    onToggleAlwaysShowReported: (Boolean) -> Unit,
+    onToggleSoundEnabled: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -268,6 +272,38 @@ private fun SettingsContent(
                 Switch(
                     checked = state.alwaysShowReported,
                     onCheckedChange = onToggleAlwaysShowReported
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Message Sounds & Vibration",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Play a chime or vibrate when new messages arrive.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Switch(
+                    checked = state.soundEnabled,
+                    onCheckedChange = onToggleSoundEnabled
                 )
             }
         }

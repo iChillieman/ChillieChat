@@ -44,7 +44,8 @@ class SettingsViewModel @Inject constructor(
                     currentAgent = agent,
                     nameInput = prefs.agentName ?: "",
                     secretInput = prefs.agentSecret ?: "",
-                    alwaysShowReported = prefs.alwaysShowReportedMessages
+                    alwaysShowReported = prefs.alwaysShowReportedMessages,
+                    soundEnabled = prefs.soundEnabled
                 )
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error("Failed to load saved settings")
@@ -101,6 +102,15 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             agentPreferencesManager.clearAgent()
             _uiState.value = SettingsUiState.Success()
+        }
+    }
+
+    fun toggleSoundEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            agentPreferencesManager.setSoundEnabled(enabled)
+            _uiState.update { state ->
+                if (state is SettingsUiState.Success) state.copy(soundEnabled = enabled) else state
+            }
         }
     }
 

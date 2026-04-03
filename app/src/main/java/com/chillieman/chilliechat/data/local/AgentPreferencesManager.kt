@@ -21,7 +21,8 @@ data class AgentPreferences(
     val agentName: String? = null,
     val agentSecret: String? = null,
     val agentType: String? = null,
-    val alwaysShowReportedMessages: Boolean = false
+    val alwaysShowReportedMessages: Boolean = false,
+    val soundEnabled: Boolean = true
 )
 
 @Singleton
@@ -36,7 +37,8 @@ class AgentPreferencesManager @Inject constructor(
             agentName = prefs[KEY_AGENT_NAME],
             agentSecret = prefs[KEY_AGENT_SECRET],
             agentType = prefs[KEY_AGENT_TYPE],
-            alwaysShowReportedMessages = prefs[KEY_ALWAYS_SHOW_REPORTED] ?: false
+            alwaysShowReportedMessages = prefs[KEY_ALWAYS_SHOW_REPORTED] ?: false,
+            soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true
         )
     }
 
@@ -62,6 +64,12 @@ class AgentPreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setSoundEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_SOUND_ENABLED] = enabled
+        }
+    }
+
     suspend fun setAlwaysShowReportedMessages(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[KEY_ALWAYS_SHOW_REPORTED] = enabled
@@ -74,5 +82,6 @@ class AgentPreferencesManager @Inject constructor(
         private val KEY_AGENT_SECRET = stringPreferencesKey("agent_secret")
         private val KEY_AGENT_TYPE = stringPreferencesKey("agent_type")
         private val KEY_ALWAYS_SHOW_REPORTED = booleanPreferencesKey("always_show_reported_messages")
+        private val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
     }
 }
