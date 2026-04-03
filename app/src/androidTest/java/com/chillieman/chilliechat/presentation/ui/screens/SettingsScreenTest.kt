@@ -38,7 +38,7 @@ class SettingsScreenTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Agent Name").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Your name").assertDoesNotExist()
     }
 
     @Test
@@ -62,7 +62,7 @@ class SettingsScreenTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Set Up Your Agent").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Set Up Your Identity").assertIsDisplayed()
         composeTestRule.onNodeWithText("Login / Register Publicly").assertIsDisplayed()
         composeTestRule.onNodeWithText("Login / Register Privately").assertIsDisplayed()
     }
@@ -93,7 +93,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText("Chillie").assertIsDisplayed()
         composeTestRule.onNodeWithText("Type: PUBLIC  |  ID: 42").assertIsDisplayed()
         composeTestRule.onNodeWithText("Logout").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Change Agent").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Change Identity").assertIsDisplayed()
     }
 
     @Test

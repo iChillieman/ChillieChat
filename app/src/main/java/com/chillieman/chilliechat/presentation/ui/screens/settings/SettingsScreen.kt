@@ -49,6 +49,7 @@ import com.chillieman.chilliechat.presentation.onboarding.OnboardingInstructionC
 import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
 import com.chillieman.chilliechat.presentation.onboarding.onboardingHighlight
 import kotlinx.coroutines.delay
+import androidx.core.net.toUri
 
 @Composable
 fun SettingsScreen(
@@ -170,18 +171,8 @@ private fun SettingsContent(
             && onboardingStep == OnboardingStep.FOCUS_AGENT_NAME
             && state.nameInput.isNotBlank()
         ) {
-            delay(5000)
-            if (onboardingStep == OnboardingStep.FOCUS_AGENT_NAME) {
-                onAdvanceOnboarding()
-            }
-        }
-    }
-
-    // Step 4: Auto-focus the Secret field
-    LaunchedEffect(onboardingStep) {
-        if (onboardingStep == OnboardingStep.FOCUS_SECRET) {
-            delay(400)
-            secretFocusRequester.requestFocus()
+            delay(2000)
+            onAdvanceOnboarding()
         }
     }
 
@@ -202,10 +193,8 @@ private fun SettingsContent(
             && onboardingStep == OnboardingStep.FOCUS_SECRET
             && state.secretInput.isNotBlank()
         ) {
-            delay(5000)
-            if (onboardingStep == OnboardingStep.FOCUS_SECRET) {
-                onAdvanceOnboarding()
-            }
+            delay(2000)
+            onAdvanceOnboarding()
         }
     }
 
@@ -287,14 +276,14 @@ private fun SettingsContent(
 
             // Input Section
             Text(
-                text = if (state.currentAgent != null) "Change Agent" else "Set Up Your Agent",
+                text = if (state.currentAgent != null) "Change Identity" else "Set Up Your Identity",
                 style = MaterialTheme.typography.headlineMedium
             )
 
             OutlinedTextField(
                 value = state.nameInput,
                 onValueChange = onNameChanged,
-                label = { Text("Agent Name") },
+                label = { Text("Your name") },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -309,7 +298,7 @@ private fun SettingsContent(
             OutlinedTextField(
                 value = state.secretInput,
                 onValueChange = onSecretChanged,
-                label = { Text("Secret (optional)") },
+                label = { Text("Your Secret (optional)") },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
@@ -441,7 +430,7 @@ private fun SettingsContent(
             val context = LocalContext.current
             OutlinedButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://chillieman.com/privacy"))
+                    val intent = Intent(Intent.ACTION_VIEW, "https://chillieman.com/privacy".toUri())
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -458,11 +447,11 @@ private fun SettingsContent(
         // Onboarding instruction card — floating at bottom
         if (isOnboarding) {
             val message = when (onboardingStep) {
-                OnboardingStep.FOCUS_AGENT_NAME -> "Enter a name for your agent"
-                OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN -> "Tap \"Login / Register Publicly\" to create your agent"
+                OnboardingStep.FOCUS_AGENT_NAME -> "Enter a name"
+                OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN -> "Tap \"Login / Register Publicly\" to change your name"
                 OnboardingStep.FOCUS_SECRET -> "You can also make a custom secret, like a password"
-                OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN -> "Now tap \"Login / Register Privately\" to secure your agent"
-                OnboardingStep.WAIT_PRIVATE_LOGIN -> "Securing your agent..."
+                OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN -> "Now tap \"Login / Register Privately\" to secure your account"
+                OnboardingStep.WAIT_PRIVATE_LOGIN -> "Securing your account..."
                 OnboardingStep.HIGHLIGHT_LOGOUT -> "If you want to go back to being anonymous, just logout"
                 else -> null
             }
