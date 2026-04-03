@@ -630,7 +630,8 @@ private fun formatEntryTimestamp(epochSeconds: Long): String {
 private object ChimeSoundPool {
     private var soundPool: SoundPool? = null
     private var soundIds: List<Int> = emptyList()
-    private var loaded = false
+    private var loadedCount = 0
+    private const val TOTAL_CHIMES = 10
 
     fun init(context: Context) {
         if (soundPool != null) return
@@ -639,33 +640,43 @@ private object ChimeSoundPool {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         val pool = SoundPool.Builder()
-            .setMaxStreams(2)
+            .setMaxStreams(4)
             .setAudioAttributes(attrs)
             .build()
-        pool.setOnLoadCompleteListener { _, _, status -> if (status == 0) loaded = true }
+        pool.setOnLoadCompleteListener { _, _, status -> if (status == 0) loadedCount++ }
         soundIds = listOf(
             pool.load(context, R.raw.chime_1, 1),
             pool.load(context, R.raw.chime_2, 1),
             pool.load(context, R.raw.chime_3, 1),
             pool.load(context, R.raw.chime_4, 1),
-            pool.load(context, R.raw.chime_5, 1)
+            pool.load(context, R.raw.chime_5, 1),
+            pool.load(context, R.raw.chime_6, 1),
+            pool.load(context, R.raw.chime_7, 1),
+            pool.load(context, R.raw.chime_8, 1),
+            pool.load(context, R.raw.chime_9, 1),
+            pool.load(context, R.raw.chime_10, 1)
         )
         soundPool = pool
     }
 
-    fun playRandom() {
-        if (!loaded || soundIds.isEmpty()) return
-        soundPool?.play(soundIds.random(), 0.4f, 0.4f, 1, 0, 1.0f)
+    suspend fun playTripleChime() {
+        if (loadedCount < TOTAL_CHIMES || soundIds.isEmpty()) return
+        val pool = soundPool ?: return
+        val picks = List(3) { soundIds.random() }
+        picks.forEachIndexed { index, soundId ->
+            pool.play(soundId, 0.4f, 0.4f, 1, 0, 1.0f)
+            if (index < 2) kotlinx.coroutines.delay(70)
+        }
     }
 }
 
-private fun notifyNewMessage(context: Context) {
+private suspend fun notifyNewMessage(context: Context) {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     when (audioManager.ringerMode) {
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
                 ChimeSoundPool.init(context)
-                ChimeSoundPool.playRandom()
+                ChimeSoundPool.playTripleChime()
             } catch (_: Exception) { }
         }
         else -> {
