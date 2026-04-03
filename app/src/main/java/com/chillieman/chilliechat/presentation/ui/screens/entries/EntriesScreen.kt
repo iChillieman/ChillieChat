@@ -526,6 +526,7 @@ private fun EntryBubble(
     onLongPress: () -> Unit = {},
     onShowAnyways: () -> Unit = {}
 ) {
+    val isChillieman = entry.agent.type == "Chillieman"
     val isAdmin = entry.agent.type in adminTypes
     val agentIcon = getAgentIcon(entry.agent.type)
     val showLock = entry.agent.capabilities?.contains("has_secret") == true
@@ -543,10 +544,12 @@ private fun EntryBubble(
                 isMine -> MaterialTheme.colorScheme.primaryContainer
                 else -> MaterialTheme.colorScheme.surfaceVariant
             },
-            modifier = Modifier.combinedClickable(
-                onClick = {},
-                onLongClick = onLongPress
-            )
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = onLongPress
+                )
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
                 // Agent header: icon + name + lock + flag + timestamp
