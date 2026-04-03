@@ -78,6 +78,9 @@ import java.time.format.DateTimeFormatter
 fun EntriesScreen(
     viewModel: EntriesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { ChimeSoundPool.init(context) }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     EntriesScreenContent(
@@ -675,7 +678,6 @@ private suspend fun notifyNewMessage(context: Context) {
     when (audioManager.ringerMode) {
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
-                ChimeSoundPool.init(context)
                 ChimeSoundPool.playTripleChime()
             } catch (_: Exception) { }
         }
