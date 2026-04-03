@@ -234,7 +234,7 @@ internal fun EntriesScreenContent(
                         color = Color(0xFF1A1A2E)
                     ) {
                         Text(
-                            text = "[SIGNAL ARCHIVED] This thread is now READ-ONLY.",
+                            text = "[SIGNAL ARCHIVED]",
                             modifier = Modifier.padding(16.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
