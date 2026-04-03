@@ -78,7 +78,7 @@ class EventsViewModelTest {
                 items.add(awaitItem())
             }
             val error = items.last() as EventsUiState.Error
-            assertEquals("Network error", error.message)
+            assertEquals("Failed to load events", error.message)
         }
     }
 

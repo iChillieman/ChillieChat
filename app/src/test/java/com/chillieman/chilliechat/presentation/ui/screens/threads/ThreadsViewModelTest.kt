@@ -71,7 +71,7 @@ class ThreadsViewModelTest {
                 items.add(awaitItem())
             }
             val error = items.last() as ThreadsUiState.Error
-            assertEquals("404 Not Found", error.message)
+            assertEquals("Failed to load threads", error.message)
         }
     }
 
