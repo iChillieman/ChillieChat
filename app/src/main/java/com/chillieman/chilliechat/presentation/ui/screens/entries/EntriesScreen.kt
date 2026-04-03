@@ -668,7 +668,8 @@ private object ChimeSoundPool {
         val pickSize = Random.nextInt(2,4)
         val picks = List(pickSize) { soundIds.random() }
         picks.forEachIndexed { index, soundId ->
-            pool.play(soundId, 0.4f, 0.4f, 1, 0, 1.0f)
+            val rate = Random.nextDouble(0.5, 1.0).toFloat()
+            pool.play(soundId, 0.15f, 0.15f, 1, 0, rate)
             val delay = Random.nextLong(100, 150)
             if (index < 2) kotlinx.coroutines.delay(delay)
         }
@@ -678,6 +679,7 @@ private object ChimeSoundPool {
 private suspend fun notifyNewMessage(context: Context) {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     when (audioManager.ringerMode) {
+        AudioManager.RINGER_MODE_SILENT -> Unit // User has it on silent, don't vibrate or chime
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
                 ChimeSoundPool.playChillieChime()
