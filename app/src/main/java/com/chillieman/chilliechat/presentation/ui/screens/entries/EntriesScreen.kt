@@ -625,13 +625,22 @@ private fun formatEntryTimestamp(epochSeconds: Long): String {
     return formatter.format(instant)
 }
 
+private val messageTones = listOf(
+    ToneGenerator.TONE_PROP_ACK,
+    ToneGenerator.TONE_PROP_BEEP,
+    ToneGenerator.TONE_PROP_BEEP2,
+    ToneGenerator.TONE_SUP_CONFIRM,
+    ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE
+)
+
 private fun notifyNewMessage(context: Context) {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     when (audioManager.ringerMode) {
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
+                val tone = messageTones.random()
                 val toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 40)
-                toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 100)
+                toneGenerator.startTone(tone, 100)
                 toneGenerator.release()
             } catch (_: Exception) { }
         }
