@@ -6,6 +6,7 @@ import com.chillieman.chilliechat.data.local.AgentPreferences
 import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.domain.model.Agent
 import com.chillieman.chilliechat.domain.usecase.SecureAgentUseCase
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,6 +28,7 @@ class SettingsViewModelTest {
 
     private val secureAgentUseCase = mockk<SecureAgentUseCase>()
     private val prefsManager = mockk<AgentPreferencesManager>(relaxed = true)
+    private val onboardingManager = mockk<OnboardingManager>(relaxed = true)
 
     @Test
     fun `loads saved agent on init`() = runTest {
@@ -34,7 +36,7 @@ class SettingsViewModelTest {
             AgentPreferences(agentId = 1, agentName = "Bot", agentType = "PUBLIC", agentSecret = null)
         )
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             val items = mutableListOf<SettingsUiState>()
@@ -50,7 +52,7 @@ class SettingsViewModelTest {
     fun `shows empty state when no saved agent`() = runTest {
         every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             val items = mutableListOf<SettingsUiState>()
@@ -66,7 +68,7 @@ class SettingsViewModelTest {
     fun `onNameChanged updates name input`() = runTest {
         every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             var state = awaitItem()
@@ -85,7 +87,7 @@ class SettingsViewModelTest {
         coEvery { secureAgentUseCase.securePublic("TestBot") } returns agent
         coEvery { prefsManager.saveAgent(any(), any(), any(), any()) } returns Unit
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             var state = awaitItem()
@@ -112,7 +114,7 @@ class SettingsViewModelTest {
         every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
         coEvery { secureAgentUseCase.securePublic(any()) } throws RuntimeException("Server error")
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             var state = awaitItem()
@@ -136,7 +138,7 @@ class SettingsViewModelTest {
         )
         coEvery { prefsManager.clearAgent() } returns Unit
 
-        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager)
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
 
         viewModel.uiState.test {
             var state = awaitItem()

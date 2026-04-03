@@ -88,7 +88,8 @@ fun EntriesScreen(
         onLoadMore = viewModel::loadOlderEntries,
         onReportEntry = viewModel::reportEntry,
         onRevealEntry = viewModel::revealEntry,
-        onSetAlwaysShowReported = viewModel::setAlwaysShowReported
+        onSetAlwaysShowReported = viewModel::setAlwaysShowReported,
+        onDismissReportTip = viewModel::dismissReportTip
     )
 }
 
@@ -99,11 +100,13 @@ internal fun EntriesScreenContent(
     onLoadMore: () -> Unit = {},
     onReportEntry: (Int) -> Unit = {},
     onRevealEntry: (Int) -> Unit = {},
-    onSetAlwaysShowReported: (Boolean) -> Unit = {}
+    onSetAlwaysShowReported: (Boolean) -> Unit = {},
+    onDismissReportTip: () -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("") }
     var reportDialogEntryId by remember { mutableStateOf<Int?>(null) }
     var uncensorDialogEntryId by remember { mutableStateOf<Int?>(null) }
+    var showReportTipDialog by remember { mutableStateOf(false) }
 
     when (val state = uiState) {
         is EntriesUiState.Loading -> {
@@ -121,6 +124,13 @@ internal fun EntriesScreenContent(
 
 
         is EntriesUiState.Success -> {
+            // Show report tip dialog on every visit until dismissed
+            LaunchedEffect(state.reportTipDismissed) {
+                if (!state.reportTipDismissed) {
+                    showReportTipDialog = true
+                }
+            }
+
             val context = LocalContext.current
             val listState = rememberLazyListState()
             val coroutineScope = rememberCoroutineScope()
@@ -352,6 +362,18 @@ internal fun EntriesScreenContent(
             }
         )
     }
+
+    // Report Tip Dialog — shown every visit until permanently dismissed
+    if (showReportTipDialog) {
+        ReportTipDialog(
+            onDismiss = { dontRemindAgain ->
+                showReportTipDialog = false
+                if (dontRemindAgain) {
+                    onDismissReportTip()
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -453,6 +475,43 @@ private fun UncensorDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ReportTipDialog(
+    onDismiss: (dontRemindAgain: Boolean) -> Unit
+) {
+    var dontRemind by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { onDismiss(dontRemind) },
+        title = { Text("Tip") },
+        text = {
+            Column {
+                Text("Press and Hold any message to report it.")
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.combinedClickable(onClick = { dontRemind = !dontRemind })
+                ) {
+                    Checkbox(
+                        checked = dontRemind,
+                        onCheckedChange = { dontRemind = it }
+                    )
+                    Text(
+                        "Don't Remind Me Again",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onDismiss(dontRemind) }) {
+                Text("Got it!")
             }
         }
     )

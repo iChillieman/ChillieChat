@@ -3,6 +3,8 @@ package com.chillieman.chilliechat.presentation.ui.screens.events
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chillieman.chilliechat.domain.usecase.GetEventsUseCase
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingManager
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +16,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EventsViewModel @Inject constructor(
-    private val getEventsUseCase: GetEventsUseCase
+    private val getEventsUseCase: GetEventsUseCase,
+    private val onboardingManager: OnboardingManager
 ) : ViewModel() {
+
+    val onboardingStep: StateFlow<OnboardingStep> = onboardingManager.currentStep
+    val isOnboarding: StateFlow<Boolean> = onboardingManager.isActive
 
     private val _uiState = MutableStateFlow<EventsUiState>(EventsUiState.Loading)
     val uiState: StateFlow<EventsUiState> = _uiState.asStateFlow()

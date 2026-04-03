@@ -22,7 +22,9 @@ data class AgentPreferences(
     val agentSecret: String? = null,
     val agentType: String? = null,
     val alwaysShowReportedMessages: Boolean = false,
-    val soundEnabled: Boolean = true
+    val soundEnabled: Boolean = true,
+    val onboardingCompleted: Boolean = false,
+    val reportTipDismissed: Boolean = false
 )
 
 @Singleton
@@ -38,7 +40,9 @@ class AgentPreferencesManager @Inject constructor(
             agentSecret = prefs[KEY_AGENT_SECRET],
             agentType = prefs[KEY_AGENT_TYPE],
             alwaysShowReportedMessages = prefs[KEY_ALWAYS_SHOW_REPORTED] ?: false,
-            soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true
+            soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
+            onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
+            reportTipDismissed = prefs[KEY_REPORT_TIP_DISMISSED] ?: false
         )
     }
 
@@ -76,6 +80,18 @@ class AgentPreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_ONBOARDING_COMPLETED] = completed
+        }
+    }
+
+    suspend fun setReportTipDismissed(dismissed: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_REPORT_TIP_DISMISSED] = dismissed
+        }
+    }
+
     companion object {
         private val KEY_AGENT_ID = intPreferencesKey("agent_id")
         private val KEY_AGENT_NAME = stringPreferencesKey("agent_name")
@@ -83,5 +99,7 @@ class AgentPreferencesManager @Inject constructor(
         private val KEY_AGENT_TYPE = stringPreferencesKey("agent_type")
         private val KEY_ALWAYS_SHOW_REPORTED = booleanPreferencesKey("always_show_reported_messages")
         private val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
+        private val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        private val KEY_REPORT_TIP_DISMISSED = booleanPreferencesKey("report_tip_dismissed")
     }
 }

@@ -61,7 +61,8 @@ class EntriesScreenTest {
                         threadId = 10,
                         threadTitle = "General",
                         entries = entries,
-                        currentAgentId = 1
+                        currentAgentId = 1,
+                        reportTipDismissed = true
                     ),
                     onSubmitEntry = {}
                 )
@@ -83,7 +84,8 @@ class EntriesScreenTest {
                         threadId = 10,
                         threadTitle = "General",
                         entries = emptyList(),
-                        currentAgentId = 1
+                        currentAgentId = 1,
+                        reportTipDismissed = true
                     ),
                     onSubmitEntry = {}
                 )

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.domain.model.Agent
 import com.chillieman.chilliechat.domain.usecase.SecureAgentUseCase
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingManager
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,11 +19,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val secureAgentUseCase: SecureAgentUseCase,
-    private val agentPreferencesManager: AgentPreferencesManager
+    private val agentPreferencesManager: AgentPreferencesManager,
+    private val onboardingManager: OnboardingManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Loading)
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    val onboardingStep: StateFlow<OnboardingStep> = onboardingManager.currentStep
+    val isOnboarding: StateFlow<Boolean> = onboardingManager.isActive
 
     init {
         loadSavedAgent()
@@ -74,6 +80,10 @@ class SettingsViewModel @Inject constructor(
             try {
                 val agent = secureAgentUseCase.securePublic(state.nameInput.trim())
                 saveAndUpdateAgent(agent, secret = null)
+                // Advance onboarding: public login succeeded → focus secret
+                if (onboardingManager.currentStep.value == OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN) {
+                    onboardingManager.advanceStep()
+                }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error("Public login failed: ${e.message}")
             }
@@ -92,6 +102,11 @@ class SettingsViewModel @Inject constructor(
                     state.secretInput.trim()
                 )
                 saveAndUpdateAgent(agent, secret = state.secretInput.trim())
+                // Advance onboarding: private login succeeded → highlight logout
+                val step = onboardingManager.currentStep.value
+                if (step == OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN || step == OnboardingStep.WAIT_PRIVATE_LOGIN) {
+                    onboardingManager.setStep(OnboardingStep.HIGHLIGHT_LOGOUT)
+                }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error("Private login failed: ${e.message}")
             }
@@ -102,6 +117,20 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             agentPreferencesManager.clearAgent()
             _uiState.value = SettingsUiState.Success()
+            // Advance onboarding: logout → complete
+            if (onboardingManager.currentStep.value == OnboardingStep.HIGHLIGHT_LOGOUT) {
+                onboardingManager.completeOnboarding()
+            }
+        }
+    }
+
+    fun advanceOnboarding() {
+        onboardingManager.advanceStep()
+    }
+
+    fun completeOnboarding() {
+        viewModelScope.launch {
+            onboardingManager.completeOnboarding()
         }
     }
 

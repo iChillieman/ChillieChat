@@ -43,6 +43,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.chillieman.chilliechat.domain.model.Event
+import com.chillieman.chilliechat.presentation.onboarding.EventsOnboardingOverlay
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
 
 private const val BASE_URL = "https://chillieman.com"
 
@@ -79,13 +81,21 @@ fun EventsScreen(
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val onboardingStep by viewModel.onboardingStep.collectAsStateWithLifecycle()
+    val isOnboarding by viewModel.isOnboarding.collectAsStateWithLifecycle()
 
-    EventsScreenContent(
-        uiState = uiState,
-        onNavigateToThreads = onNavigateToThreads,
-        onRefresh = viewModel::refresh,
-        onToggleActiveOnly = viewModel::toggleActiveOnly
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        EventsScreenContent(
+            uiState = uiState,
+            onNavigateToThreads = onNavigateToThreads,
+            onRefresh = viewModel::refresh,
+            onToggleActiveOnly = viewModel::toggleActiveOnly
+        )
+
+        EventsOnboardingOverlay(
+            visible = isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

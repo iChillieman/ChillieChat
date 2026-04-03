@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.chillieman.chilliechat.MainDispatcherRule
 import com.chillieman.chilliechat.domain.model.Event
 import com.chillieman.chilliechat.domain.usecase.GetEventsUseCase
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -24,6 +25,8 @@ class EventsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val onboardingManager = mockk<OnboardingManager>(relaxed = true)
+
     private val testEvents = listOf(
         Event(id = 1, title = "Event 1", startTime = 100L),
         Event(id = 2, title = "Event 2", startTime = 200L)
@@ -34,7 +37,7 @@ class EventsViewModelTest {
         val useCase = mockk<GetEventsUseCase>()
         every { useCase(any()) } returns flow { /* never emits */ }
 
-        val viewModel = EventsViewModel(useCase)
+        val viewModel = EventsViewModel(useCase, onboardingManager)
 
         viewModel.uiState.test {
             assertEquals(EventsUiState.Loading, awaitItem())
@@ -46,7 +49,7 @@ class EventsViewModelTest {
         val useCase = mockk<GetEventsUseCase>()
         every { useCase(any()) } returns flowOf(testEvents)
 
-        val viewModel = EventsViewModel(useCase)
+        val viewModel = EventsViewModel(useCase, onboardingManager)
 
         viewModel.uiState.test {
             // May get Loading first, then Success
@@ -66,7 +69,7 @@ class EventsViewModelTest {
         val useCase = mockk<GetEventsUseCase>()
         every { useCase(any()) } returns flow { throw RuntimeException("Network error") }
 
-        val viewModel = EventsViewModel(useCase)
+        val viewModel = EventsViewModel(useCase, onboardingManager)
 
         viewModel.uiState.test {
             val items = mutableListOf<EventsUiState>()
@@ -85,7 +88,7 @@ class EventsViewModelTest {
         every { useCase(any()) } returns flowOf(testEvents)
         coEvery { useCase.refresh(any()) } returns Unit
 
-        val viewModel = EventsViewModel(useCase)
+        val viewModel = EventsViewModel(useCase, onboardingManager)
 
         viewModel.uiState.test {
             var state = awaitItem()

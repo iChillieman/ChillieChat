@@ -18,6 +18,7 @@ class SettingsScreenTest {
     val composeTestRule = createComposeRule()
 
     private val noOp: (String) -> Unit = {}
+    private val noOpBool: (Boolean) -> Unit = {}
     private val noOpAction: () -> Unit = {}
 
     @Test
@@ -31,7 +32,9 @@ class SettingsScreenTest {
                     onLoginPublic = noOpAction,
                     onLoginPrivate = noOpAction,
                     onLogout = noOpAction,
-                    onDismissError = noOpAction
+                    onDismissError = noOpAction,
+                    onToggleAlwaysShowReported = noOpBool,
+                    onToggleSoundEnabled = noOpBool
                 )
             }
         }
@@ -53,7 +56,9 @@ class SettingsScreenTest {
                     onLoginPublic = noOpAction,
                     onLoginPrivate = noOpAction,
                     onLogout = noOpAction,
-                    onDismissError = noOpAction
+                    onDismissError = noOpAction,
+                    onToggleAlwaysShowReported = noOpBool,
+                    onToggleSoundEnabled = noOpBool
                 )
             }
         }
@@ -78,7 +83,9 @@ class SettingsScreenTest {
                     onLoginPublic = noOpAction,
                     onLoginPrivate = noOpAction,
                     onLogout = noOpAction,
-                    onDismissError = noOpAction
+                    onDismissError = noOpAction,
+                    onToggleAlwaysShowReported = noOpBool,
+                    onToggleSoundEnabled = noOpBool
                 )
             }
         }
@@ -104,7 +111,9 @@ class SettingsScreenTest {
                     onLoginPublic = noOpAction,
                     onLoginPrivate = noOpAction,
                     onLogout = noOpAction,
-                    onDismissError = noOpAction
+                    onDismissError = noOpAction,
+                    onToggleAlwaysShowReported = noOpBool,
+                    onToggleSoundEnabled = noOpBool
                 )
             }
         }
@@ -123,7 +132,9 @@ class SettingsScreenTest {
                     onLoginPublic = noOpAction,
                     onLoginPrivate = noOpAction,
                     onLogout = noOpAction,
-                    onDismissError = noOpAction
+                    onDismissError = noOpAction,
+                    onToggleAlwaysShowReported = noOpBool,
+                    onToggleSoundEnabled = noOpBool
                 )
             }
         }

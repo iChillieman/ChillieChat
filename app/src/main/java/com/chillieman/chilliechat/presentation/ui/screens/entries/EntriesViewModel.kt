@@ -60,7 +60,8 @@ class EntriesViewModel @Inject constructor(
             hasMore = hasMore,
             isLoadingMore = isLoadingMore,
             isArchived = eventEndTime != null && System.currentTimeMillis() / 1000 > eventEndTime,
-            soundEnabled = prefs.soundEnabled
+            soundEnabled = prefs.soundEnabled,
+            reportTipDismissed = prefs.reportTipDismissed
         )
     }.stateIn(
         scope = viewModelScope,
@@ -118,6 +119,12 @@ class EntriesViewModel @Inject constructor(
     fun setAlwaysShowReported(enabled: Boolean) {
         viewModelScope.launch {
             agentPreferencesManager.setAlwaysShowReportedMessages(enabled)
+        }
+    }
+
+    fun dismissReportTip() {
+        viewModelScope.launch {
+            agentPreferencesManager.setReportTipDismissed(true)
         }
     }
 

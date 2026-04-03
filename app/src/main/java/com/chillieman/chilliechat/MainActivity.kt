@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
@@ -23,27 +25,39 @@ import com.chillieman.chilliechat.presentation.navigation.EventsRoute
 import com.chillieman.chilliechat.presentation.navigation.SettingsRoute
 import com.chillieman.chilliechat.presentation.navigation.EntriesRoute
 import com.chillieman.chilliechat.presentation.navigation.ThreadsRoute
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingManager
+import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
 import com.chillieman.chilliechat.presentation.ui.theme.ChillieChatTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var onboardingManager: OnboardingManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ChillieChatTheme {
-                ChillieChatApp()
+                ChillieChatApp(onboardingManager)
             }
         }
     }
 }
 
 @Composable
-fun ChillieChatApp() {
+fun ChillieChatApp(onboardingManager: OnboardingManager) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val onboardingStep by onboardingManager.currentStep.collectAsStateWithLifecycle()
+    val isOnboarding by onboardingManager.isActive.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        onboardingManager.initialize()
+    }
 
     val isSettingsScreen = currentRoute?.contains("SettingsRoute") == true
     val isThreadsScreen = currentRoute?.contains("ThreadsRoute") == true
@@ -70,7 +84,11 @@ fun ChillieChatApp() {
                 title = title,
                 showSettingsIcon = !isSettingsScreen,
                 showBackButton = !isRootScreen,
+                highlightSettings = isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS,
                 onSettingsClick = {
+                    if (isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS) {
+                        onboardingManager.advanceStep()
+                    }
                     navController.navigate(SettingsRoute) {
                         launchSingleTop = true
                     }
