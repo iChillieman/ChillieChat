@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -112,6 +113,7 @@ internal fun EntriesScreenContent(
             val coroutineScope = rememberCoroutineScope()
             var initialScrollDone by remember { mutableStateOf(false) }
             var showNewMessageButton by remember { mutableStateOf(false) }
+            var newMessageDividerAfterEntryId by remember { mutableStateOf<Int?>(null) }
 
             val isNearBottom by remember {
                 derivedStateOf {
@@ -126,11 +128,15 @@ internal fun EntriesScreenContent(
                 snapshotFlow { isNearBottom }
                     .distinctUntilChanged()
                     .collect { nearBottom ->
-                        if (nearBottom) showNewMessageButton = false
+                        if (nearBottom) {
+                            showNewMessageButton = false
+                            newMessageDividerAfterEntryId = null
+                        }
                     }
             }
 
             val lastEntryId = state.entries.lastOrNull()?.id
+            var previousLastEntryId by remember { mutableStateOf<Int?>(null) }
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
                     if (!initialScrollDone) {
@@ -143,7 +149,12 @@ internal fun EntriesScreenContent(
                     } else {
                         // User is reading older history — don't interrupt, show button
                         showNewMessageButton = true
+                        // Only set divider if one isn't already showing
+                        if (newMessageDividerAfterEntryId == null && previousLastEntryId != null) {
+                            newMessageDividerAfterEntryId = previousLastEntryId
+                        }
                     }
+                    previousLastEntryId = lastEntryId
                 }
             }
 
@@ -183,21 +194,47 @@ internal fun EntriesScreenContent(
                             }
                         }
 
-                        items(
-                            items = state.entries,
-                            key = { it.id }
-                        ) { entry ->
-                            val isContentHidden = entry.isReported
-                                    && !state.alwaysShowReported
-                                    && entry.id !in state.revealedEntryIds
+                        state.entries.forEach { entry ->
+                            item(key = entry.id) {
+                                val isContentHidden = entry.isReported
+                                        && !state.alwaysShowReported
+                                        && entry.id !in state.revealedEntryIds
 
-                            EntryBubble(
-                                entry = entry,
-                                isMine = entry.agent.id == state.currentAgentId,
-                                isContentHidden = isContentHidden,
-                                onLongPress = { reportDialogEntryId = entry.id },
-                                onShowAnyways = { uncensorDialogEntryId = entry.id }
-                            )
+                                EntryBubble(
+                                    entry = entry,
+                                    isMine = entry.agent.id == state.currentAgentId,
+                                    isContentHidden = isContentHidden,
+                                    onLongPress = { reportDialogEntryId = entry.id },
+                                    onShowAnyways = { uncensorDialogEntryId = entry.id }
+                                )
+                            }
+
+                            // Insert "New Messages" divider after the last old entry
+                            if (entry.id == newMessageDividerAfterEntryId) {
+                                item(key = "new_messages_divider") {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.weight(1f),
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                        )
+                                        Text(
+                                            text = "  New Messages  ",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.weight(1f),
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
