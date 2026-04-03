@@ -30,6 +30,7 @@ fun AppNavigation(
 
         composable<ThreadsRoute> {
             ThreadsScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToEntries = { threadId, threadTitle, eventEndTime ->
                     navController.navigate(EntriesRoute(threadId, threadTitle, eventEndTime))
                 }

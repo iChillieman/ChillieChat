@@ -30,7 +30,7 @@ class ThreadsScreenTest {
             ChillieChatTheme {
                 ThreadsScreenContent(
                     uiState = ThreadsUiState.Loading,
-                    onNavigateToEntries = { _, _, _ -> },
+                    onNavigateBack = {}, onNavigateToEntries = { _, _, _ -> },
                     onRefresh = {}
                 )
             }
@@ -48,7 +48,7 @@ class ThreadsScreenTest {
             ChillieChatTheme {
                 ThreadsScreenContent(
                     uiState = ThreadsUiState.Success(event = testEvent, threads = threads),
-                    onNavigateToEntries = { _, _, _ -> },
+                    onNavigateBack = {}, onNavigateToEntries = { _, _, _ -> },
                     onRefresh = {}
                 )
             }
@@ -67,7 +67,7 @@ class ThreadsScreenTest {
             ChillieChatTheme {
                 ThreadsScreenContent(
                     uiState = ThreadsUiState.Success(event = testEvent, threads = emptyList()),
-                    onNavigateToEntries = { _, _, _ -> },
+                    onNavigateBack = {}, onNavigateToEntries = { _, _, _ -> },
                     onRefresh = {}
                 )
             }
@@ -81,7 +81,7 @@ class ThreadsScreenTest {
             ChillieChatTheme {
                 ThreadsScreenContent(
                     uiState = ThreadsUiState.Error("Server error"),
-                    onNavigateToEntries = { _, _, _ -> },
+                    onNavigateBack = {}, onNavigateToEntries = { _, _, _ -> },
                     onRefresh = {}
                 )
             }
@@ -100,7 +100,7 @@ class ThreadsScreenTest {
             ChillieChatTheme {
                 ThreadsScreenContent(
                     uiState = ThreadsUiState.Success(event = testEvent, threads = threads),
-                    onNavigateToEntries = { _, _, _ -> },
+                    onNavigateBack = {}, onNavigateToEntries = { _, _, _ -> },
                     onRefresh = {}
                 )
             }

@@ -53,6 +53,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ThreadsScreen(
+    onNavigateBack: () -> Unit,
     onNavigateToEntries: (threadId: Int, threadTitle: String, eventEndTime: Long?) -> Unit,
     viewModel: ThreadsViewModel = hiltViewModel()
 ) {
@@ -60,6 +61,7 @@ fun ThreadsScreen(
 
     ThreadsScreenContent(
         uiState = uiState,
+        onNavigateBack = onNavigateBack,
         onNavigateToEntries = onNavigateToEntries,
         onRefresh = viewModel::refresh,
         onConfirmAge = viewModel::confirmAge,
@@ -71,6 +73,7 @@ fun ThreadsScreen(
 @Composable
 internal fun ThreadsScreenContent(
     uiState: ThreadsUiState,
+    onNavigateBack: () -> Unit,
     onNavigateToEntries: (threadId: Int, threadTitle: String, eventEndTime: Long?) -> Unit,
     onRefresh: () -> Unit,
     onConfirmAge: () -> Unit = {},
@@ -142,22 +145,43 @@ internal fun ThreadsScreenContent(
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { /* Could navigate back */ }) {
+                        TextButton(onClick = onNavigateBack) {
                             Text("Cancel")
                         }
                     }
                 )
             } else if (state.event.id == 4 && !state.hasSeenDaeTip) {
-                AlertDialog(
-                    onDismissRequest = onDismissDaeTip,
-                    title = { Text("Tip") },
-                    text = { Text("Daedalus moderates this chat in real time! When you enter the chatroom, say something that contains Dae, and Daedalus will respond to you as soon as possible.") },
-                    confirmButton = {
-                        TextButton(onClick = onDismissDaeTip) {
-                            Text("Got it!")
+                var dontRemindMe by remember { mutableStateOf(false) }
+                var isLocallyDismissed by remember { mutableStateOf(false) }
+
+                if (!isLocallyDismissed) {
+                    AlertDialog(
+                        onDismissRequest = { isLocallyDismissed = true },
+                        title = { Text("Tip") },
+                        text = { 
+                            Column {
+                                Text("Daedalus moderates this chat in real time! When you enter the chatroom, say something that contains Dae, and Daedalus will respond to you as soon as possible.")
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(checked = dontRemindMe, onCheckedChange = { dontRemindMe = it })
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Don't Remind me again")
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { 
+                                if (dontRemindMe) {
+                                    onDismissDaeTip() 
+                                } else {
+                                    isLocallyDismissed = true
+                                }
+                            }) {
+                                Text("Got it!")
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
 
