@@ -48,7 +48,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -109,6 +117,7 @@ internal fun EntriesScreenContent(
 
 
         is EntriesUiState.Success -> {
+            val context = LocalContext.current
             val listState = rememberLazyListState()
             val coroutineScope = rememberCoroutineScope()
             var initialScrollDone by remember { mutableStateOf(false) }
@@ -132,7 +141,8 @@ internal fun EntriesScreenContent(
                     }
             }
 
-            val lastEntryId = state.entries.lastOrNull()?.id
+            val lastEntry = state.entries.lastOrNull()
+            val lastEntryId = lastEntry?.id
             var previousLastEntryId by remember { mutableStateOf<Int?>(null) }
             LaunchedEffect(lastEntryId) {
                 if (lastEntryId != null && state.entries.isNotEmpty()) {
@@ -151,6 +161,11 @@ internal fun EntriesScreenContent(
                         if (newMessageDividerAfterEntryId == null && previousLastEntryId != null) {
                             newMessageDividerAfterEntryId = previousLastEntryId
                         }
+                    }
+                    // Chime or vibrate for new messages from other agents
+                    val isFromOtherAgent = lastEntry?.agentId != state.currentAgentId
+                    if (previousLastEntryId != null && isFromOtherAgent) {
+                        notifyNewMessage(context)
                     }
                     previousLastEntryId = lastEntryId
                 }
@@ -608,4 +623,29 @@ private fun formatEntryTimestamp(epochSeconds: Long): String {
     val formatter = DateTimeFormatter.ofPattern("M/d/yyyy '@' hh:mm a")
         .withZone(ZoneId.systemDefault())
     return formatter.format(instant)
+}
+
+private fun notifyNewMessage(context: Context) {
+    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    when (audioManager.ringerMode) {
+        AudioManager.RINGER_MODE_NORMAL -> {
+            try {
+                val toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 40)
+                toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 100)
+                toneGenerator.release()
+            } catch (_: Exception) { }
+        }
+        else -> {
+            try {
+                val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                    manager.defaultVibrator
+                } else {
+                    @Suppress("DEPRECATION")
+                    context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                }
+                vibrator.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+            } catch (_: Exception) { }
+        }
+    }
 }
