@@ -78,7 +78,7 @@ class ThreadsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = getEventWithThreadsUseCase(eventId)
-                val prefs = kotlinx.coroutines.flow.first(agentPreferencesManager.agentPreferences)
+                val prefs = agentPreferencesManager.agentPreferences.first()
                 _uiState.value = ThreadsUiState.Success(
                     event = result.event,
                     threads = result.threads,
