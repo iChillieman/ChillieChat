@@ -66,4 +66,10 @@ class EventsViewModel @Inject constructor(
             if (it is EventsUiState.Success) it.copy(showActiveOnly = !it.showActiveOnly) else it
         }
     }
+
+    fun skipOnboarding() {
+        viewModelScope.launch {
+            onboardingManager.completeOnboarding()
+        }
+    }
 }
