@@ -93,7 +93,8 @@ fun EventsScreen(
         )
 
         EventsOnboardingOverlay(
-            visible = isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS
+            visible = isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS,
+            onSkipOnboarding = viewModel::skipOnboarding
         )
     }
 }
