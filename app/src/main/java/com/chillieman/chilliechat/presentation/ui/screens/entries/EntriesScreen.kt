@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -73,6 +71,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.random.Random
 
 @Composable
 fun EntriesScreen(
@@ -662,13 +661,16 @@ private object ChimeSoundPool {
         soundPool = pool
     }
 
-    suspend fun playTripleChime() {
+
+    suspend fun playChillieChime() {
         if (loadedCount < TOTAL_CHIMES || soundIds.isEmpty()) return
         val pool = soundPool ?: return
-        val picks = List(3) { soundIds.random() }
+        val pickSize = Random.nextInt(2,4)
+        val picks = List(pickSize) { soundIds.random() }
         picks.forEachIndexed { index, soundId ->
             pool.play(soundId, 0.4f, 0.4f, 1, 0, 1.0f)
-            if (index < 2) kotlinx.coroutines.delay(70)
+            val delay = Random.nextLong(100, 150)
+            if (index < 2) kotlinx.coroutines.delay(delay)
         }
     }
 }
@@ -678,7 +680,7 @@ private suspend fun notifyNewMessage(context: Context) {
     when (audioManager.ringerMode) {
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
-                ChimeSoundPool.playTripleChime()
+                ChimeSoundPool.playChillieChime()
             } catch (_: Exception) { }
         }
         else -> {
