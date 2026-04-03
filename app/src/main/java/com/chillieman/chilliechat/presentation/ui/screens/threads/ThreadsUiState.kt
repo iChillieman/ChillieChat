@@ -9,7 +9,9 @@ sealed interface ThreadsUiState {
     data class Success(
         val event: Event,
         val threads: List<ChatThread> = emptyList(),
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val hasConfirmedAge: Boolean = false,
+        val hasSeenDaeTip: Boolean = false
     ) : ThreadsUiState
 
     data class Error(val message: String) : ThreadsUiState

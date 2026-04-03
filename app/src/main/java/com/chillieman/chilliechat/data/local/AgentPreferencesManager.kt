@@ -24,7 +24,9 @@ data class AgentPreferences(
     val alwaysShowReportedMessages: Boolean = false,
     val soundEnabled: Boolean = true,
     val onboardingCompleted: Boolean = false,
-    val reportTipDismissed: Boolean = false
+    val reportTipDismissed: Boolean = false,
+    val hasConfirmedAge: Boolean = false,
+    val hasSeenDaeTip: Boolean = false
 )
 
 @Singleton
@@ -42,7 +44,9 @@ class AgentPreferencesManager @Inject constructor(
             alwaysShowReportedMessages = prefs[KEY_ALWAYS_SHOW_REPORTED] ?: false,
             soundEnabled = prefs[KEY_SOUND_ENABLED] ?: true,
             onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
-            reportTipDismissed = prefs[KEY_REPORT_TIP_DISMISSED] ?: false
+            reportTipDismissed = prefs[KEY_REPORT_TIP_DISMISSED] ?: false,
+            hasConfirmedAge = prefs[KEY_HAS_CONFIRMED_AGE] ?: false,
+            hasSeenDaeTip = prefs[KEY_HAS_SEEN_DAE_TIP] ?: false
         )
     }
 
@@ -92,6 +96,18 @@ class AgentPreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setHasConfirmedAge(confirmed: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_HAS_CONFIRMED_AGE] = confirmed
+        }
+    }
+
+    suspend fun setHasSeenDaeTip(seen: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_HAS_SEEN_DAE_TIP] = seen
+        }
+    }
+
     companion object {
         private val KEY_AGENT_ID = intPreferencesKey("agent_id")
         private val KEY_AGENT_NAME = stringPreferencesKey("agent_name")
@@ -101,5 +117,7 @@ class AgentPreferencesManager @Inject constructor(
         private val KEY_SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         private val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         private val KEY_REPORT_TIP_DISMISSED = booleanPreferencesKey("report_tip_dismissed")
+        private val KEY_HAS_CONFIRMED_AGE = booleanPreferencesKey("has_confirmed_age")
+        private val KEY_HAS_SEEN_DAE_TIP = booleanPreferencesKey("has_seen_dae_tip")
     }
 }

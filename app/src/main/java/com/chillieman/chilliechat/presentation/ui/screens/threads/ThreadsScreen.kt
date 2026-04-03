@@ -31,9 +31,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,7 +61,9 @@ fun ThreadsScreen(
     ThreadsScreenContent(
         uiState = uiState,
         onNavigateToEntries = onNavigateToEntries,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onConfirmAge = viewModel::confirmAge,
+        onDismissDaeTip = viewModel::dismissDaeTip
     )
 }
 
@@ -65,7 +72,9 @@ fun ThreadsScreen(
 internal fun ThreadsScreenContent(
     uiState: ThreadsUiState,
     onNavigateToEntries: (threadId: Int, threadTitle: String, eventEndTime: Long?) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onConfirmAge: () -> Unit = {},
+    onDismissDaeTip: () -> Unit = {}
 ) {
     when (val state = uiState) {
         is ThreadsUiState.Loading -> {
@@ -109,6 +118,46 @@ internal fun ThreadsScreenContent(
                         }
                     }
                 }
+            }
+
+            if (state.event.id != 4 && !state.hasConfirmedAge) {
+                var checked by remember { mutableStateOf(false) }
+                AlertDialog(
+                    onDismissRequest = { /* forced action */ },
+                    title = { Text("Content Warning") },
+                    text = {
+                        Column {
+                            Text("Warning - this event is NOT moderated in real time by Daedalus - you may see offensive language, you must be 18 years or older to enter.")
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(checked = checked, onCheckedChange = { checked = it })
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("I'm 18, let me in")
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = onConfirmAge, enabled = checked) {
+                            Text("Confirm")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { /* Could navigate back */ }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            } else if (state.event.id == 4 && !state.hasSeenDaeTip) {
+                AlertDialog(
+                    onDismissRequest = onDismissDaeTip,
+                    title = { Text("Tip") },
+                    text = { Text("Daedalus moderates this chat in real time! When you enter the chatroom, say something that contains Dae, and Daedalus will respond to you as soon as possible.") },
+                    confirmButton = {
+                        TextButton(onClick = onDismissDaeTip) {
+                            Text("Got it!")
+                        }
+                    }
+                )
             }
         }
 
