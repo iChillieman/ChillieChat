@@ -123,15 +123,12 @@ internal fun EntriesScreenContent(
                 }
             }
 
-            // Hide the button when user scrolls to bottom
+            // Hide the button when user scrolls to bottom (divider stays)
             LaunchedEffect(Unit) {
                 snapshotFlow { isNearBottom }
                     .distinctUntilChanged()
                     .collect { nearBottom ->
-                        if (nearBottom) {
-                            showNewMessageButton = false
-                            newMessageDividerAfterEntryId = null
-                        }
+                        if (nearBottom) showNewMessageButton = false
                     }
             }
 
@@ -144,7 +141,8 @@ internal fun EntriesScreenContent(
                         listState.scrollToItem(state.entries.size - 1)
                         initialScrollDone = true
                     } else if (isNearBottom) {
-                        // User is near bottom — smooth scroll to new message
+                        // User is at bottom and caught up — clear divider, auto-scroll
+                        newMessageDividerAfterEntryId = null
                         listState.animateScrollToItem(state.entries.size - 1)
                     } else {
                         // User is reading older history — don't interrupt, show button
