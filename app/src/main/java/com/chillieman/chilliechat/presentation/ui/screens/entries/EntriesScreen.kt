@@ -49,8 +49,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.ToneGenerator
+import android.media.SoundPool
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.chillieman.chilliechat.R
 import com.chillieman.chilliechat.domain.model.EntryWithAgent
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.Instant
@@ -625,23 +627,45 @@ private fun formatEntryTimestamp(epochSeconds: Long): String {
     return formatter.format(instant)
 }
 
-private val messageTones = listOf(
-    ToneGenerator.TONE_PROP_ACK,
-    ToneGenerator.TONE_PROP_BEEP,
-    ToneGenerator.TONE_PROP_BEEP2,
-    ToneGenerator.TONE_SUP_CONFIRM,
-    ToneGenerator.TONE_CDMA_PRESSHOLDKEY_LITE
-)
+private object ChimeSoundPool {
+    private var soundPool: SoundPool? = null
+    private var soundIds: List<Int> = emptyList()
+    private var loaded = false
+
+    fun init(context: Context) {
+        if (soundPool != null) return
+        val attrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        val pool = SoundPool.Builder()
+            .setMaxStreams(2)
+            .setAudioAttributes(attrs)
+            .build()
+        pool.setOnLoadCompleteListener { _, _, status -> if (status == 0) loaded = true }
+        soundIds = listOf(
+            pool.load(context, R.raw.chime_1, 1),
+            pool.load(context, R.raw.chime_2, 1),
+            pool.load(context, R.raw.chime_3, 1),
+            pool.load(context, R.raw.chime_4, 1),
+            pool.load(context, R.raw.chime_5, 1)
+        )
+        soundPool = pool
+    }
+
+    fun playRandom() {
+        if (!loaded || soundIds.isEmpty()) return
+        soundPool?.play(soundIds.random(), 0.4f, 0.4f, 1, 0, 1.0f)
+    }
+}
 
 private fun notifyNewMessage(context: Context) {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     when (audioManager.ringerMode) {
         AudioManager.RINGER_MODE_NORMAL -> {
             try {
-                val tone = messageTones.random()
-                val toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 40)
-                toneGenerator.startTone(tone, 100)
-                toneGenerator.release()
+                ChimeSoundPool.init(context)
+                ChimeSoundPool.playRandom()
             } catch (_: Exception) { }
         }
         else -> {
