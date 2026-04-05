@@ -24,6 +24,9 @@ fun AppNavigation(
             EventsScreen(
                 onNavigateToThreads = { eventId, eventTitle ->
                     navController.navigate(ThreadsRoute(eventId, eventTitle))
+                },
+                onNavigateToDaeThread = {
+                    navController.navigate(EntriesRoute(threadId = 4, threadTitle = "Talk to Dae & Zeph", eventEndTime = null))
                 }
             )
         }

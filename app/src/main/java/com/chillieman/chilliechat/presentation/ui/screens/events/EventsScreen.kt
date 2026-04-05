@@ -78,6 +78,7 @@ private fun getEventStatus(event: Event): EventStatus {
 @Composable
 fun EventsScreen(
     onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
+    onNavigateToDaeThread: () -> Unit = {},
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,6 +89,7 @@ fun EventsScreen(
         EventsScreenContent(
             uiState = uiState,
             onNavigateToThreads = onNavigateToThreads,
+            onNavigateToDaeThread = onNavigateToDaeThread,
             onRefresh = viewModel::refresh,
             onToggleActiveOnly = viewModel::toggleActiveOnly
         )
@@ -104,6 +106,7 @@ fun EventsScreen(
 internal fun EventsScreenContent(
     uiState: EventsUiState,
     onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
+    onNavigateToDaeThread: () -> Unit = {},
     onRefresh: () -> Unit,
     onToggleActiveOnly: () -> Unit = {}
 ) {
@@ -127,6 +130,12 @@ internal fun EventsScreenContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
+                    // Talk to Dae Card
+                    TalkToDaeCard(
+                        onClick = onNavigateToDaeThread,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+
                     // Filter row
                     Row(
                         modifier = Modifier
@@ -178,6 +187,41 @@ internal fun EventsScreenContent(
             ErrorContent(
                 message = state.message,
                 onRetry = onRefresh
+            )
+        }
+    }
+}
+
+@Composable
+private fun TalkToDaeCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(100.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Talk to Dae & Zeph \uD83E\uDD16",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Jump directly into the main AI chat room!",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
             )
         }
     }
