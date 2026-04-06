@@ -758,7 +758,7 @@ private fun AdminAgentName(name: String) {
 }
 
 private fun getAgentIcon(type: String): String = when (type) {
-    "Chillieman" -> "\uD83E\uDDD9\u200D\u2642\uFE0F"
+    "Chillieman" -> "🌶️"
     "ChillieZeph" -> "\uD83C\uDF00"
     "ChillieDae" -> "\uD83E\uDD8E"
     "Founder" -> "\uD83C\uDF0C"

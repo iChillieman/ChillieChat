@@ -401,6 +401,21 @@ private fun SettingsContent(
                 }
             }
 
+            // Blocked Users Section
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Moderation",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            OutlinedButton(
+                onClick = onNavigateToBlockedUsers,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Blocked Users")
+            }
+
+
             val context = LocalContext.current
             // Code Section
             Spacer(modifier = Modifier.height(8.dp))
@@ -408,7 +423,6 @@ private fun SettingsContent(
                 text = "Code",
                 style = MaterialTheme.typography.headlineMedium
             )
-
 
             OutlinedButton(
                 onClick = {
@@ -447,18 +461,14 @@ private fun SettingsContent(
                 Text("Terms of Use")
             }
 
-            // Blocked Users Section
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Moderation",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
             OutlinedButton(
-                onClick = onNavigateToBlockedUsers,
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, "https://chillieman.com/delete-me".toUri())
+                    context.startActivity(intent)
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Blocked Users")
+                Text("Request Data Deletion")
             }
 
             // Extra bottom spacing when onboarding card is showing
