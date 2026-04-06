@@ -15,6 +15,9 @@ interface ThreadDao {
     @Query("SELECT * FROM threads WHERE id = :threadId")
     fun getThreadById(threadId: Int): Flow<ThreadEntity?>
 
+    @Query("SELECT * FROM threads WHERE id = :threadId")
+    suspend fun getThreadByIdDirect(threadId: Int): ThreadEntity?
+
     @Upsert
     suspend fun insertThreads(threads: List<ThreadEntity>)
 
