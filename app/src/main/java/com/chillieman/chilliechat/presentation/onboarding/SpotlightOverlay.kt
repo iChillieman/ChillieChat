@@ -241,7 +241,7 @@ fun DaeCardSpotlightOverlay(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Tap the card above to start chatting!",
+                            text = "Tap the card above!",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -249,7 +249,7 @@ fun DaeCardSpotlightOverlay(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Include \"Dae\" or \"Zeph\" in your message\nto get a response from either AI agent.",
+                            text = "Dae and Zeph are always willing to chat!",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
