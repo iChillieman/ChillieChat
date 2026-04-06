@@ -176,24 +176,10 @@ private fun SettingsContent(
         }
     }
 
-    // Advance when secret is filled and user defocuses
-    LaunchedEffect(secretFieldFocused) {
-        if (isOnboarding
-            && onboardingStep == OnboardingStep.FOCUS_SECRET
-            && !secretFieldFocused
-            && state.secretInput.isNotBlank()
-        ) {
-            onAdvanceOnboarding()
-        }
-    }
-
-    // Inactivity timer: auto-advance after typing secret
+    // Auto-advance from secret step after inactivity (resets on each keystroke)
     LaunchedEffect(state.secretInput, onboardingStep) {
-        if (isOnboarding
-            && onboardingStep == OnboardingStep.FOCUS_SECRET
-            && state.secretInput.isNotBlank()
-        ) {
-            delay(2000)
+        if (isOnboarding && onboardingStep == OnboardingStep.FOCUS_SECRET) {
+            delay(4000)
             onAdvanceOnboarding()
         }
     }
