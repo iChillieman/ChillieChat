@@ -36,8 +36,28 @@ android {
         compose = true
     }
 
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+
+    // Create stub file with placeholders if it doesn't exist
+    if (!keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.writeText(
+            """
+                # Keystore configuration for release signing
+                # === FILL THESE IN WITH YOUR REAL VALUES ===
+                storeFile=your-keystore.jks
+                storePassword=your_store_password
+                keyAlias=key0
+                keyPassword=your_key_password
+            """.trimIndent()
+        )
+
+        println("⚠️  keystore.properties was missing. " +
+                "A stub file has been created in the project root.")
+    }
+
+    // Load the properties (now guaranteed to exist)
     val keystoreProperties = Properties().apply {
-        load(FileInputStream(rootProject.file("keystore.properties")))
+        load(FileInputStream(keystorePropertiesFile))
     }
 
     signingConfigs {
