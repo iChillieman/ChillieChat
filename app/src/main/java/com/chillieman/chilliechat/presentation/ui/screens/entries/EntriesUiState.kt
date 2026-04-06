@@ -11,6 +11,7 @@ sealed interface EntriesUiState {
         val currentAgentId: Int?,
         val alwaysShowReported: Boolean = false,
         val revealedEntryIds: Set<Int> = emptySet(),
+        val blockedAgentIds: Set<Int> = emptySet(),
         val isRefreshing: Boolean = false,
         val hasMore: Boolean = true,
         val isLoadingMore: Boolean = false,

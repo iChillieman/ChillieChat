@@ -3,6 +3,9 @@ package com.chillieman.chilliechat.presentation.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+object ComplianceRoute
+
+@Serializable
 object EventsRoute
 
 @Serializable
@@ -13,3 +16,6 @@ data class EntriesRoute(val threadId: Int, val threadTitle: String, val eventEnd
 
 @Serializable
 object SettingsRoute
+
+@Serializable
+object BlockedUsersRoute

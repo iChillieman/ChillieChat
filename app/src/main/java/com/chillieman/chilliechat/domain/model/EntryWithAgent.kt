@@ -9,5 +9,6 @@ data class EntryWithAgent(
     val timestamp: Long,
     val agent: Agent,
     val isDeleted: Boolean = false,
-    val isReported: Boolean = false
+    val isReported: Boolean = false,
+    val isBlocked: Boolean = false
 )

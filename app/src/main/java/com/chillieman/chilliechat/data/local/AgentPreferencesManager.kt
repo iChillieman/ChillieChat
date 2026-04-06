@@ -26,7 +26,8 @@ data class AgentPreferences(
     val onboardingCompleted: Boolean = false,
     val reportTipDismissed: Boolean = false,
     val hasConfirmedAge: Boolean = false,
-    val hasSeenDaeTip: Boolean = false
+    val hasSeenDaeTip: Boolean = false,
+    val hasAgreedToTerms: Boolean = false
 )
 
 @Singleton
@@ -46,7 +47,8 @@ class AgentPreferencesManager @Inject constructor(
             onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
             reportTipDismissed = prefs[KEY_REPORT_TIP_DISMISSED] ?: false,
             hasConfirmedAge = prefs[KEY_HAS_CONFIRMED_AGE] ?: false,
-            hasSeenDaeTip = prefs[KEY_HAS_SEEN_DAE_TIP] ?: false
+            hasSeenDaeTip = prefs[KEY_HAS_SEEN_DAE_TIP] ?: false,
+            hasAgreedToTerms = prefs[KEY_HAS_AGREED_TO_TERMS] ?: false
         )
     }
 
@@ -108,6 +110,12 @@ class AgentPreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setHasAgreedToTerms(agreed: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_HAS_AGREED_TO_TERMS] = agreed
+        }
+    }
+
     companion object {
         private val KEY_AGENT_ID = intPreferencesKey("agent_id")
         private val KEY_AGENT_NAME = stringPreferencesKey("agent_name")
@@ -119,5 +127,6 @@ class AgentPreferencesManager @Inject constructor(
         private val KEY_REPORT_TIP_DISMISSED = booleanPreferencesKey("report_tip_dismissed")
         private val KEY_HAS_CONFIRMED_AGE = booleanPreferencesKey("has_confirmed_age")
         private val KEY_HAS_SEEN_DAE_TIP = booleanPreferencesKey("has_seen_dae_tip")
+        private val KEY_HAS_AGREED_TO_TERMS = booleanPreferencesKey("has_agreed_to_terms")
     }
 }

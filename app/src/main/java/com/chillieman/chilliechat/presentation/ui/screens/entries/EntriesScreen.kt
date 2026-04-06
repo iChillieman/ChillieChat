@@ -87,6 +87,8 @@ fun EntriesScreen(
         onSubmitEntry = viewModel::submitEntry,
         onLoadMore = viewModel::loadOlderEntries,
         onReportEntry = viewModel::reportEntry,
+        onBlockAgent = viewModel::blockAgent,
+        onUnblockAgent = viewModel::unblockAgent,
         onRevealEntry = viewModel::revealEntry,
         onSetAlwaysShowReported = viewModel::setAlwaysShowReported,
         onDismissReportTip = viewModel::dismissReportTip
@@ -99,12 +101,15 @@ internal fun EntriesScreenContent(
     onSubmitEntry: (String) -> Unit,
     onLoadMore: () -> Unit = {},
     onReportEntry: (Int) -> Unit = {},
+    onBlockAgent: (agentId: Int, agentName: String) -> Unit = { _, _ -> },
+    onUnblockAgent: (agentId: Int) -> Unit = {},
     onRevealEntry: (Int) -> Unit = {},
     onSetAlwaysShowReported: (Boolean) -> Unit = {},
     onDismissReportTip: () -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("") }
-    var reportDialogEntryId by remember { mutableStateOf<Int?>(null) }
+    var reportDialogEntry by remember { mutableStateOf<EntryWithAgent?>(null) }
+    var unblockDialogEntry by remember { mutableStateOf<EntryWithAgent?>(null) }
     var uncensorDialogEntryId by remember { mutableStateOf<Int?>(null) }
     var showReportTipDialog by remember { mutableStateOf(false) }
 
@@ -231,7 +236,13 @@ internal fun EntriesScreenContent(
                                     entry = entry,
                                     isMine = entry.agent.id == state.currentAgentId,
                                     isContentHidden = isContentHidden,
-                                    onLongPress = { reportDialogEntryId = entry.id },
+                                    onLongPress = {
+                                        if (entry.isBlocked) {
+                                            unblockDialogEntry = entry
+                                        } else {
+                                            reportDialogEntry = entry
+                                        }
+                                    },
                                     onShowAnyways = { uncensorDialogEntryId = entry.id }
                                 )
                             }
@@ -338,13 +349,27 @@ internal fun EntriesScreenContent(
         }
     }
 
-    // Report Confirmation Dialog
-    reportDialogEntryId?.let { entryId ->
+    // Report / Block Dialog
+    reportDialogEntry?.let { entry ->
         ReportDialog(
-            onDismiss = { reportDialogEntryId = null },
+            agentName = entry.agent.name,
+            onDismiss = { reportDialogEntry = null },
+            onConfirm = { shouldReport, shouldBlock ->
+                if (shouldReport) onReportEntry(entry.id)
+                if (shouldBlock) onBlockAgent(entry.agentId, entry.agent.name)
+                reportDialogEntry = null
+            }
+        )
+    }
+
+    // Unblock Dialog
+    unblockDialogEntry?.let { entry ->
+        UnblockDialog(
+            agentName = entry.agent.name,
+            onDismiss = { unblockDialogEntry = null },
             onConfirm = {
-                onReportEntry(entryId)
-                reportDialogEntryId = null
+                onUnblockAgent(entry.agentId)
+                unblockDialogEntry = null
             }
         )
     }
@@ -379,36 +404,95 @@ internal fun EntriesScreenContent(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ReportDialog(
+    agentName: String,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: (shouldReport: Boolean, shouldBlock: Boolean) -> Unit
 ) {
+    var reportChecked by remember { mutableStateOf(false) }
+    var blockChecked by remember { mutableStateOf(false) }
     var understood by remember { mutableStateOf(false) }
+
+    val hasAction = reportChecked || blockChecked
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Report Message") },
+        title = { Text("Report / Block") },
         text = {
             Column {
-                Text("Are you sure you want to report this message as inappropriate or offensive?")
+                Text("Choose an action for this message from $agentName:")
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.combinedClickable(onClick = { understood = !understood })
+                    modifier = Modifier.combinedClickable(onClick = { reportChecked = !reportChecked })
                 ) {
                     Checkbox(
-                        checked = understood,
-                        onCheckedChange = { understood = it }
+                        checked = reportChecked,
+                        onCheckedChange = { reportChecked = it }
                     )
-                    Text("I Understand", style = MaterialTheme.typography.bodyMedium)
+                    Text("Report this message", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.combinedClickable(onClick = { blockChecked = !blockChecked })
+                ) {
+                    Checkbox(
+                        checked = blockChecked,
+                        onCheckedChange = { blockChecked = it }
+                    )
+                    Text("Block this user", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                if (hasAction) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.combinedClickable(onClick = { understood = !understood })
+                    ) {
+                        Checkbox(
+                            checked = understood,
+                            onCheckedChange = { understood = it }
+                        )
+                        Text("I Understand", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = onConfirm,
-                enabled = understood
+                onClick = { onConfirm(reportChecked, blockChecked) },
+                enabled = hasAction && understood
             ) {
                 Text("Submit")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun UnblockDialog(
+    agentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Unblock User") },
+        text = {
+            Text("Do you want to unblock $agentName? You will see their messages again.")
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Unblock")
             }
         },
         dismissButton = {
@@ -592,7 +676,16 @@ private fun EntryBubble(
                     }
                 }
                 // Entry content
-                if (entry.isDeleted) {
+                if (entry.isBlocked) {
+                    Text(
+                        text = "BLOCKED",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    )
+                } else if (entry.isDeleted) {
                     Text(
                         text = "\u26A0\uFE0F This entry was removed for abuse.",
                         style = MaterialTheme.typography.bodyMedium.copy(

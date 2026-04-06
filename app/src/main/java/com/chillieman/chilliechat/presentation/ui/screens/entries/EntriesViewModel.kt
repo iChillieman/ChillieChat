@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.data.remote.WebSocketManager
+import com.chillieman.chilliechat.domain.repository.BlockedAgentRepository
 import com.chillieman.chilliechat.domain.repository.EntryRepository
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +27,8 @@ class EntriesViewModel @Inject constructor(
     private val submitEntryUseCase: SubmitEntryUseCase,
     private val agentPreferencesManager: AgentPreferencesManager,
     private val webSocketManager: WebSocketManager,
-    private val entryRepository: EntryRepository
+    private val entryRepository: EntryRepository,
+    private val blockedAgentRepository: BlockedAgentRepository
 ) : ViewModel() {
 
     private val threadId: Int = checkNotNull(savedStateHandle["threadId"])
@@ -48,15 +49,20 @@ class EntriesViewModel @Inject constructor(
         agentPreferencesManager.agentPreferences,
         _hasMore,
         _isLoadingMore,
-        _revealedEntryIds
-    ) { entries, prefs, hasMore, isLoadingMore, revealedIds ->
+        combine(_revealedEntryIds, blockedAgentRepository.getBlockedAgentIds()) { revealed, blocked ->
+            revealed to blocked.toSet()
+        }
+    ) { entries, prefs, hasMore, isLoadingMore, (revealedIds, blockedIds) ->
         EntriesUiState.Success(
             threadId = threadId,
             threadTitle = threadTitle,
-            entries = entries,
+            entries = entries.map { entry ->
+                if (entry.agentId in blockedIds) entry.copy(isBlocked = true) else entry
+            },
             currentAgentId = prefs.agentId,
             alwaysShowReported = prefs.alwaysShowReportedMessages,
             revealedEntryIds = revealedIds,
+            blockedAgentIds = blockedIds,
             hasMore = hasMore,
             isLoadingMore = isLoadingMore,
             isArchived = eventEndTime != null && System.currentTimeMillis() / 1000 > eventEndTime,
@@ -109,6 +115,18 @@ class EntriesViewModel @Inject constructor(
             } catch (_: Exception) {
                 // Report failed silently — user can try again
             }
+        }
+    }
+
+    fun blockAgent(agentId: Int, agentName: String) {
+        viewModelScope.launch {
+            blockedAgentRepository.blockAgent(agentId, agentName)
+        }
+    }
+
+    fun unblockAgent(agentId: Int) {
+        viewModelScope.launch {
+            blockedAgentRepository.unblockAgent(agentId)
         }
     }
 

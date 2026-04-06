@@ -54,6 +54,7 @@ import androidx.core.net.toUri
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,7 +73,8 @@ fun SettingsScreen(
         isOnboarding = isOnboarding,
         onboardingStep = onboardingStep,
         onAdvanceOnboarding = viewModel::advanceOnboarding,
-        onCompleteOnboarding = viewModel::completeOnboarding
+        onCompleteOnboarding = viewModel::completeOnboarding,
+        onNavigateToBlockedUsers = onNavigateToBlockedUsers
     )
 }
 
@@ -89,7 +91,8 @@ internal fun SettingsScreenContent(
     isOnboarding: Boolean = false,
     onboardingStep: OnboardingStep = OnboardingStep.COMPLETED,
     onAdvanceOnboarding: () -> Unit = {},
-    onCompleteOnboarding: () -> Unit = {}
+    onCompleteOnboarding: () -> Unit = {},
+    onNavigateToBlockedUsers: () -> Unit = {}
 ) {
     when (val state = uiState) {
         is SettingsUiState.Loading -> {
@@ -110,7 +113,8 @@ internal fun SettingsScreenContent(
                 isOnboarding = isOnboarding,
                 onboardingStep = onboardingStep,
                 onAdvanceOnboarding = onAdvanceOnboarding,
-                onCompleteOnboarding = onCompleteOnboarding
+                onCompleteOnboarding = onCompleteOnboarding,
+                onNavigateToBlockedUsers = onNavigateToBlockedUsers
             )
         }
 
@@ -135,7 +139,8 @@ private fun SettingsContent(
     isOnboarding: Boolean,
     onboardingStep: OnboardingStep,
     onAdvanceOnboarding: () -> Unit,
-    onCompleteOnboarding: () -> Unit
+    onCompleteOnboarding: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit
 ) {
     val nameFocusRequester = remember { FocusRequester() }
     val secretFocusRequester = remember { FocusRequester() }
@@ -430,6 +435,30 @@ private fun SettingsContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Privacy Policy")
+            }
+
+            OutlinedButton(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, "https://chillieman.com/terms".toUri())
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Terms of Use")
+            }
+
+            // Blocked Users Section
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Moderation",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            OutlinedButton(
+                onClick = onNavigateToBlockedUsers,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Blocked Users")
             }
 
             // Extra bottom spacing when onboarding card is showing

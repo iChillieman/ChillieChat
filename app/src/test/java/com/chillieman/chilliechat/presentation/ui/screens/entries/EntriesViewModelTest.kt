@@ -9,6 +9,7 @@ import com.chillieman.chilliechat.domain.model.Agent
 import com.chillieman.chilliechat.domain.model.Entry
 import com.chillieman.chilliechat.domain.model.EntryWithAgent
 import com.chillieman.chilliechat.data.remote.WebSocketManager
+import com.chillieman.chilliechat.domain.repository.BlockedAgentRepository
 import com.chillieman.chilliechat.domain.repository.EntryRepository
 import com.chillieman.chilliechat.domain.usecase.GetEntriesUseCase
 import com.chillieman.chilliechat.domain.usecase.SubmitEntryUseCase
@@ -43,10 +44,13 @@ class EntriesViewModelTest {
         submitEntryUseCase: SubmitEntryUseCase = mockk(relaxed = true),
         prefsManager: AgentPreferencesManager = mockk(),
         webSocketManager: WebSocketManager = mockk(relaxed = true),
-        entryRepository: EntryRepository = mockk(relaxed = true)
+        entryRepository: EntryRepository = mockk(relaxed = true),
+        blockedAgentRepository: BlockedAgentRepository = mockk<BlockedAgentRepository>().also {
+            every { it.getBlockedAgentIds() } returns flowOf(emptyList())
+        }
     ): EntriesViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("threadId" to 10, "threadTitle" to "Test Chat"))
-        return EntriesViewModel(savedStateHandle, getEntriesUseCase, submitEntryUseCase, prefsManager, webSocketManager, entryRepository)
+        return EntriesViewModel(savedStateHandle, getEntriesUseCase, submitEntryUseCase, prefsManager, webSocketManager, entryRepository, blockedAgentRepository)
     }
 
     @Test

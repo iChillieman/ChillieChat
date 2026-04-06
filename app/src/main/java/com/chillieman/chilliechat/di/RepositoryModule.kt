@@ -1,10 +1,12 @@
 package com.chillieman.chilliechat.di
 
 import com.chillieman.chilliechat.data.repository.AgentRepositoryImpl
+import com.chillieman.chilliechat.data.repository.BlockedAgentRepositoryImpl
 import com.chillieman.chilliechat.data.repository.EntryRepositoryImpl
 import com.chillieman.chilliechat.data.repository.EventRepositoryImpl
 import com.chillieman.chilliechat.data.repository.ThreadRepositoryImpl
 import com.chillieman.chilliechat.domain.repository.AgentRepository
+import com.chillieman.chilliechat.domain.repository.BlockedAgentRepository
 import com.chillieman.chilliechat.domain.repository.EntryRepository
 import com.chillieman.chilliechat.domain.repository.EventRepository
 import com.chillieman.chilliechat.domain.repository.ThreadRepository
@@ -33,4 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEntryRepository(impl: EntryRepositoryImpl): EntryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBlockedAgentRepository(impl: BlockedAgentRepositoryImpl): BlockedAgentRepository
 }
