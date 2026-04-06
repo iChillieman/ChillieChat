@@ -43,10 +43,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.chillieman.chilliechat.domain.model.Event
+import com.chillieman.chilliechat.presentation.onboarding.DaeCardSpotlightOverlay
 import com.chillieman.chilliechat.presentation.onboarding.EventsOnboardingOverlay
-import com.chillieman.chilliechat.presentation.onboarding.OnboardingInstructionCard
 import com.chillieman.chilliechat.presentation.onboarding.OnboardingStep
-import com.chillieman.chilliechat.presentation.onboarding.onboardingHighlight
 
 private const val BASE_URL = "https://chillieman.com"
 
@@ -91,21 +90,22 @@ fun EventsScreen(
         EventsScreenContent(
             uiState = uiState,
             onNavigateToThreads = onNavigateToThreads,
-            onNavigateToDaeThread = {
-                if (isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_DAE_CARD) {
-                    viewModel.completeOnboarding()
-                }
-                onNavigateToDaeThread()
-            },
+            onNavigateToDaeThread = onNavigateToDaeThread,
             onRefresh = viewModel::refresh,
-            onToggleActiveOnly = viewModel::toggleActiveOnly,
-            isOnboarding = isOnboarding,
-            onboardingStep = onboardingStep
+            onToggleActiveOnly = viewModel::toggleActiveOnly
         )
 
         EventsOnboardingOverlay(
             visible = isOnboarding && onboardingStep == OnboardingStep.SPOTLIGHT_SETTINGS,
             onSkipOnboarding = viewModel::skipOnboarding
+        )
+
+        DaeCardSpotlightOverlay(
+            visible = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_DAE_CARD,
+            onTapDaeCard = {
+                viewModel.completeOnboarding()
+                onNavigateToDaeThread()
+            }
         )
     }
 }
@@ -117,9 +117,7 @@ internal fun EventsScreenContent(
     onNavigateToThreads: (eventId: Int, eventTitle: String) -> Unit,
     onNavigateToDaeThread: () -> Unit = {},
     onRefresh: () -> Unit,
-    onToggleActiveOnly: () -> Unit = {},
-    isOnboarding: Boolean = false,
-    onboardingStep: OnboardingStep = OnboardingStep.COMPLETED
+    onToggleActiveOnly: () -> Unit = {}
 ) {
     when (val state = uiState) {
         is EventsUiState.Loading -> {
@@ -135,79 +133,60 @@ internal fun EventsScreenContent(
                 state.events
             }
 
-            val highlightDaeCard = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_DAE_CARD
+            PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Talk to Dae Card
+                    TalkToDaeCard(
+                        onClick = onNavigateToDaeThread,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                PullToRefreshBox(
-                    isRefreshing = state.isRefreshing,
-                    onRefresh = onRefresh,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        // Talk to Dae Card
-                        TalkToDaeCard(
-                            onClick = onNavigateToDaeThread,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .onboardingHighlight(active = highlightDaeCard)
-                        )
-
-                        // Filter row
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = state.showActiveOnly,
-                                onCheckedChange = { onToggleActiveOnly() }
-                            )
-                            Text(
-                                text = "Only Show Active Events",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        if (filteredEvents.isEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .verticalScroll(rememberScrollState()),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                EmptyEventsContent(isFiltered = state.showActiveOnly && state.events.isNotEmpty())
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(
-                                    items = filteredEvents,
-                                    key = { it.id }
-                                ) { event ->
-                                    EventCard(
-                                        event = event,
-                                        onClick = { onNavigateToThreads(event.id, event.title) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Onboarding instruction for Dae card
-                if (highlightDaeCard) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.BottomCenter
+                    // Filter row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OnboardingInstructionCard(
-                            message = "Tap here to start talking to Dae & Zeph!\n\nJust include \"Dae\" or \"Zeph\" in your message to get a response from either AI agent.",
-                            visible = true
+                        Checkbox(
+                            checked = state.showActiveOnly,
+                            onCheckedChange = { onToggleActiveOnly() }
                         )
+                        Text(
+                            text = "Only Show Active Events",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    if (filteredEvents.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            EmptyEventsContent(isFiltered = state.showActiveOnly && state.events.isNotEmpty())
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = filteredEvents,
+                                key = { it.id }
+                            ) { event ->
+                                EventCard(
+                                    event = event,
+                                    onClick = { onNavigateToThreads(event.id, event.title) }
+                                )
+                            }
+                        }
                     }
                 }
             }
