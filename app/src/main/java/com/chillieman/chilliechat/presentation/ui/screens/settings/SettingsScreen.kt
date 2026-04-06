@@ -396,6 +396,25 @@ private fun SettingsContent(
                 }
             }
 
+            val context = LocalContext.current
+            // Code Section
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Code",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+
+            OutlinedButton(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, "https://github.com/iChillieman/ChillieChat".toUri())
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("ChillieChat source code")
+            }
+
             // Privacy Policy Section
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -403,7 +422,6 @@ private fun SettingsContent(
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            val context = LocalContext.current
             OutlinedButton(
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, "https://chillieman.com/privacy".toUri())
