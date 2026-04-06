@@ -28,11 +28,10 @@ class OnboardingManager @Inject constructor(
     fun advanceStep() {
         val next = when (_currentStep.value) {
             OnboardingStep.SPOTLIGHT_SETTINGS -> OnboardingStep.FOCUS_AGENT_NAME
-            OnboardingStep.FOCUS_AGENT_NAME -> OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN
-            OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN -> OnboardingStep.FOCUS_SECRET
-            OnboardingStep.FOCUS_SECRET -> OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN
-            OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN -> OnboardingStep.WAIT_PRIVATE_LOGIN
-            OnboardingStep.WAIT_PRIVATE_LOGIN -> OnboardingStep.HIGHLIGHT_LOGOUT
+            OnboardingStep.FOCUS_AGENT_NAME -> OnboardingStep.FOCUS_SECRET
+            OnboardingStep.FOCUS_SECRET -> OnboardingStep.HIGHLIGHT_LOGIN
+            OnboardingStep.HIGHLIGHT_LOGIN -> OnboardingStep.WAIT_LOGIN
+            OnboardingStep.WAIT_LOGIN -> OnboardingStep.HIGHLIGHT_LOGOUT
             OnboardingStep.HIGHLIGHT_LOGOUT -> OnboardingStep.COMPLETED
             OnboardingStep.COMPLETED -> OnboardingStep.COMPLETED
         }

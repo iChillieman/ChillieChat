@@ -71,44 +71,32 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun loginPublic() {
+    fun login() {
         val state = _uiState.value
         if (state !is SettingsUiState.Success || state.nameInput.isBlank()) return
 
+        val hasSecret = state.secretInput.isNotBlank()
+
         viewModelScope.launch {
             _uiState.update { (it as SettingsUiState.Success).copy(isSubmitting = true) }
             try {
-                val agent = secureAgentUseCase.securePublic(state.nameInput.trim())
-                saveAndUpdateAgent(agent, secret = null)
-                // Advance onboarding: public login succeeded → focus secret
-                if (onboardingManager.currentStep.value == OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN) {
-                    onboardingManager.advanceStep()
+                val agent = if (hasSecret) {
+                    secureAgentUseCase.securePrivate(
+                        state.nameInput.trim(),
+                        state.secretInput.trim()
+                    )
+                } else {
+                    secureAgentUseCase.securePublic(state.nameInput.trim())
                 }
-            } catch (e: Exception) {
-                _uiState.value = SettingsUiState.Error("Public login failed: ${e.message}")
-            }
-        }
-    }
+                saveAndUpdateAgent(agent, secret = if (hasSecret) state.secretInput.trim() else null)
 
-    fun loginPrivate() {
-        val state = _uiState.value
-        if (state !is SettingsUiState.Success || state.nameInput.isBlank() || state.secretInput.isBlank()) return
-
-        viewModelScope.launch {
-            _uiState.update { (it as SettingsUiState.Success).copy(isSubmitting = true) }
-            try {
-                val agent = secureAgentUseCase.securePrivate(
-                    state.nameInput.trim(),
-                    state.secretInput.trim()
-                )
-                saveAndUpdateAgent(agent, secret = state.secretInput.trim())
-                // Advance onboarding: private login succeeded → highlight logout
+                // Advance onboarding: login succeeded → highlight logout
                 val step = onboardingManager.currentStep.value
-                if (step == OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN || step == OnboardingStep.WAIT_PRIVATE_LOGIN) {
+                if (step == OnboardingStep.HIGHLIGHT_LOGIN || step == OnboardingStep.WAIT_LOGIN) {
                     onboardingManager.setStep(OnboardingStep.HIGHLIGHT_LOGOUT)
                 }
             } catch (e: Exception) {
-                _uiState.value = SettingsUiState.Error("Private login failed: ${e.message}")
+                _uiState.value = SettingsUiState.Error("Login failed: ${e.message}")
             }
         }
     }

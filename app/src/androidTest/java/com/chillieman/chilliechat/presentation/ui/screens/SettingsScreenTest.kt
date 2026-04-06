@@ -29,8 +29,7 @@ class SettingsScreenTest {
                     uiState = SettingsUiState.Loading,
                     onNameChanged = noOp,
                     onSecretChanged = noOp,
-                    onLoginPublic = noOpAction,
-                    onLoginPrivate = noOpAction,
+                    onLogin = noOpAction,
                     onLogout = noOpAction,
                     onDismissError = noOpAction,
                     onToggleAlwaysShowReported = noOpBool,
@@ -53,8 +52,7 @@ class SettingsScreenTest {
                     ),
                     onNameChanged = noOp,
                     onSecretChanged = noOp,
-                    onLoginPublic = noOpAction,
-                    onLoginPrivate = noOpAction,
+                    onLogin = noOpAction,
                     onLogout = noOpAction,
                     onDismissError = noOpAction,
                     onToggleAlwaysShowReported = noOpBool,
@@ -63,8 +61,7 @@ class SettingsScreenTest {
             }
         }
         composeTestRule.onNodeWithText("Set Up Your Identity").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Login / Register Publicly").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Login / Register Privately").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Login / Register").assertIsDisplayed()
     }
 
     @Test
@@ -80,8 +77,7 @@ class SettingsScreenTest {
                     ),
                     onNameChanged = noOp,
                     onSecretChanged = noOp,
-                    onLoginPublic = noOpAction,
-                    onLoginPrivate = noOpAction,
+                    onLogin = noOpAction,
                     onLogout = noOpAction,
                     onDismissError = noOpAction,
                     onToggleAlwaysShowReported = noOpBool,
@@ -97,7 +93,7 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun loginButtons_disabledWhenNameEmpty() {
+    fun loginButton_disabledWhenNameEmpty() {
         composeTestRule.setContent {
             ChillieChatTheme {
                 SettingsScreenContent(
@@ -108,8 +104,7 @@ class SettingsScreenTest {
                     ),
                     onNameChanged = noOp,
                     onSecretChanged = noOp,
-                    onLoginPublic = noOpAction,
-                    onLoginPrivate = noOpAction,
+                    onLogin = noOpAction,
                     onLogout = noOpAction,
                     onDismissError = noOpAction,
                     onToggleAlwaysShowReported = noOpBool,
@@ -117,8 +112,7 @@ class SettingsScreenTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Login / Register Publicly").assertIsNotEnabled()
-        composeTestRule.onNodeWithText("Login / Register Privately").assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Login / Register").assertIsNotEnabled()
     }
 
     @Test
@@ -129,8 +123,7 @@ class SettingsScreenTest {
                     uiState = SettingsUiState.Error("Auth failed"),
                     onNameChanged = noOp,
                     onSecretChanged = noOp,
-                    onLoginPublic = noOpAction,
-                    onLoginPrivate = noOpAction,
+                    onLogin = noOpAction,
                     onLogout = noOpAction,
                     onDismissError = noOpAction,
                     onToggleAlwaysShowReported = noOpBool,

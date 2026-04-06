@@ -81,7 +81,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `loginPublic calls securePublic and saves agent`() = runTest {
+    fun `login without secret calls securePublic and saves agent`() = runTest {
         val agent = Agent(id = 5, name = "TestBot", type = "PUBLIC", capabilities = null)
         every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
         coEvery { secureAgentUseCase.securePublic("TestBot") } returns agent
@@ -96,7 +96,7 @@ class SettingsViewModelTest {
             viewModel.onNameChanged("TestBot")
             awaitItem() // nameInput updated
 
-            viewModel.loginPublic()
+            viewModel.login()
 
             // Consume states until we get the final Success with agent
             val finalState = expectMostRecentItem()
@@ -110,7 +110,37 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `loginPublic shows error on failure`() = runTest {
+    fun `login with secret calls securePrivate and saves agent`() = runTest {
+        val agent = Agent(id = 6, name = "SecureBot", type = "PRIVATE", capabilities = null)
+        every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
+        coEvery { secureAgentUseCase.securePrivate("SecureBot", "mySecret") } returns agent
+        coEvery { prefsManager.saveAgent(any(), any(), any(), any()) } returns Unit
+
+        val viewModel = SettingsViewModel(secureAgentUseCase, prefsManager, onboardingManager)
+
+        viewModel.uiState.test {
+            var state = awaitItem()
+            if (state is SettingsUiState.Loading) state = awaitItem()
+
+            viewModel.onNameChanged("SecureBot")
+            awaitItem()
+            viewModel.onSecretChanged("mySecret")
+            awaitItem()
+
+            viewModel.login()
+
+            val finalState = expectMostRecentItem()
+            assertTrue(finalState is SettingsUiState.Success || finalState is SettingsUiState.Error)
+            if (finalState is SettingsUiState.Success) {
+                assertEquals("SecureBot", finalState.currentAgent?.name)
+            }
+        }
+
+        coVerify { prefsManager.saveAgent(6, "SecureBot", "PRIVATE", "mySecret") }
+    }
+
+    @Test
+    fun `login shows error on failure`() = runTest {
         every { prefsManager.agentPreferences } returns flowOf(AgentPreferences())
         coEvery { secureAgentUseCase.securePublic(any()) } throws RuntimeException("Server error")
 
@@ -123,7 +153,7 @@ class SettingsViewModelTest {
             viewModel.onNameChanged("Fail")
             awaitItem()
 
-            viewModel.loginPublic()
+            viewModel.login()
 
             val error = expectMostRecentItem()
             assertTrue(error is SettingsUiState.Error)

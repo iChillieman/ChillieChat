@@ -6,10 +6,14 @@ import com.chillieman.chilliechat.MainDispatcherRule
 import com.chillieman.chilliechat.domain.model.ChatThread
 import com.chillieman.chilliechat.domain.model.Event
 import com.chillieman.chilliechat.domain.model.EventWithThreads
+import com.chillieman.chilliechat.data.local.AgentPreferences
+import com.chillieman.chilliechat.data.local.AgentPreferencesManager
 import com.chillieman.chilliechat.domain.usecase.GetEventWithThreadsUseCase
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,12 +34,16 @@ class ThreadsViewModelTest {
     )
     private val testResult = EventWithThreads(event = testEvent, threads = testThreads)
 
+    private val agentPreferencesManager = mockk<AgentPreferencesManager>(relaxed = true).also {
+        every { it.agentPreferences } returns flowOf(AgentPreferences())
+    }
+
     private fun createViewModel(
         eventId: Int = 1,
         useCase: GetEventWithThreadsUseCase
     ): ThreadsViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("eventId" to eventId))
-        return ThreadsViewModel(savedStateHandle, useCase)
+        return ThreadsViewModel(savedStateHandle, useCase, agentPreferencesManager)
     }
 
     @Test

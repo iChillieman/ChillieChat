@@ -64,8 +64,7 @@ fun SettingsScreen(
         uiState = uiState,
         onNameChanged = viewModel::onNameChanged,
         onSecretChanged = viewModel::onSecretChanged,
-        onLoginPublic = viewModel::loginPublic,
-        onLoginPrivate = viewModel::loginPrivate,
+        onLogin = viewModel::login,
         onLogout = viewModel::logout,
         onDismissError = viewModel::dismissError,
         onToggleAlwaysShowReported = viewModel::toggleAlwaysShowReported,
@@ -82,8 +81,7 @@ internal fun SettingsScreenContent(
     uiState: SettingsUiState,
     onNameChanged: (String) -> Unit,
     onSecretChanged: (String) -> Unit,
-    onLoginPublic: () -> Unit,
-    onLoginPrivate: () -> Unit,
+    onLogin: () -> Unit,
     onLogout: () -> Unit,
     onDismissError: () -> Unit,
     onToggleAlwaysShowReported: (Boolean) -> Unit,
@@ -105,8 +103,7 @@ internal fun SettingsScreenContent(
                 state = state,
                 onNameChanged = onNameChanged,
                 onSecretChanged = onSecretChanged,
-                onLoginPublic = onLoginPublic,
-                onLoginPrivate = onLoginPrivate,
+                onLogin = onLogin,
                 onLogout = onLogout,
                 onToggleAlwaysShowReported = onToggleAlwaysShowReported,
                 onToggleSoundEnabled = onToggleSoundEnabled,
@@ -131,8 +128,7 @@ private fun SettingsContent(
     state: SettingsUiState.Success,
     onNameChanged: (String) -> Unit,
     onSecretChanged: (String) -> Unit,
-    onLoginPublic: () -> Unit,
-    onLoginPrivate: () -> Unit,
+    onLogin: () -> Unit,
     onLogout: () -> Unit,
     onToggleAlwaysShowReported: (Boolean) -> Unit,
     onToggleSoundEnabled: (Boolean) -> Unit,
@@ -146,15 +142,19 @@ private fun SettingsContent(
     var nameFieldFocused by remember { mutableStateOf(false) }
     var secretFieldFocused by remember { mutableStateOf(false) }
 
-    // Step 2: Auto-focus the Agent Name field
+    // Auto-focus the Agent Name field
     LaunchedEffect(onboardingStep) {
         if (onboardingStep == OnboardingStep.FOCUS_AGENT_NAME) {
             delay(400) // Let the screen settle
             nameFocusRequester.requestFocus()
         }
+        if (onboardingStep == OnboardingStep.FOCUS_SECRET) {
+            delay(400)
+            secretFocusRequester.requestFocus()
+        }
     }
 
-    // Step 2 → 3: Advance when name is filled and user defocuses
+    // Advance when name is filled and user defocuses
     LaunchedEffect(nameFieldFocused) {
         if (isOnboarding
             && onboardingStep == OnboardingStep.FOCUS_AGENT_NAME
@@ -165,7 +165,7 @@ private fun SettingsContent(
         }
     }
 
-    // Step 2 → 3: 5-second inactivity timer after typing
+    // Inactivity timer: auto-advance after typing name
     LaunchedEffect(state.nameInput, onboardingStep) {
         if (isOnboarding
             && onboardingStep == OnboardingStep.FOCUS_AGENT_NAME
@@ -176,7 +176,7 @@ private fun SettingsContent(
         }
     }
 
-    // Step 4 → 5: Advance when secret is filled and user defocuses
+    // Advance when secret is filled and user defocuses
     LaunchedEffect(secretFieldFocused) {
         if (isOnboarding
             && onboardingStep == OnboardingStep.FOCUS_SECRET
@@ -187,7 +187,7 @@ private fun SettingsContent(
         }
     }
 
-    // Step 4 → 5: 5-second inactivity timer after typing secret
+    // Inactivity timer: auto-advance after typing secret
     LaunchedEffect(state.secretInput, onboardingStep) {
         if (isOnboarding
             && onboardingStep == OnboardingStep.FOCUS_SECRET
@@ -311,39 +311,29 @@ private fun SettingsContent(
                 enabled = !state.isSubmitting
             )
 
-            // Action Buttons
+            // Action Button
             if (state.isSubmitting) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
                 Button(
-                    onClick = onLoginPublic,
+                    onClick = onLogin,
                     modifier = Modifier
                         .fillMaxWidth()
                         .onboardingHighlight(
-                            active = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN
+                            active = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_LOGIN
                         ),
                     enabled = state.nameInput.isNotBlank()
                 ) {
-                    Text("Login / Register Publicly")
-                }
-
-                OutlinedButton(
-                    onClick = onLoginPrivate,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onboardingHighlight(
-                            active = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN
-                        ),
-                    enabled = state.nameInput.isNotBlank() && state.secretInput.isNotBlank()
-                ) {
-                    Text("Login / Register Privately")
+                    Text("Login / Register")
                 }
 
                 Text(
-                    text = "Public agents share the name with anyone who uses it. " +
-                            "Private agents require the secret to authenticate.",
+                    text = if (state.secretInput.isNotBlank())
+                        "You will be logged in privately with your secret."
+                    else
+                        "You will be logged in publicly. Add a secret above to go private.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -448,10 +438,9 @@ private fun SettingsContent(
         if (isOnboarding) {
             val message = when (onboardingStep) {
                 OnboardingStep.FOCUS_AGENT_NAME -> "Enter a name"
-                OnboardingStep.HIGHLIGHT_PUBLIC_LOGIN -> "Tap \"Login / Register Publicly\" to change your name"
-                OnboardingStep.FOCUS_SECRET -> "You can also make a custom secret, like a password"
-                OnboardingStep.HIGHLIGHT_PRIVATE_LOGIN -> "Now tap \"Login / Register Privately\" to secure your account"
-                OnboardingStep.WAIT_PRIVATE_LOGIN -> "Securing your account..."
+                OnboardingStep.FOCUS_SECRET -> "Optionally add a secret to make your account private"
+                OnboardingStep.HIGHLIGHT_LOGIN -> "Tap \"Login / Register\" to set up your identity"
+                OnboardingStep.WAIT_LOGIN -> "Setting up your account..."
                 OnboardingStep.HIGHLIGHT_LOGOUT -> "If you want to go back to being anonymous, just logout"
                 else -> null
             }
