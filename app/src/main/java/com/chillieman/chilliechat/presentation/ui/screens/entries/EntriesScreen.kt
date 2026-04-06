@@ -576,7 +576,7 @@ private fun ReportTipDialog(
         title = { Text("Tip") },
         text = {
             Column {
-                Text("Press and Hold any message to report it.")
+                Text("Press and Hold any message, to report it - or block the user who wrote it.")
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
