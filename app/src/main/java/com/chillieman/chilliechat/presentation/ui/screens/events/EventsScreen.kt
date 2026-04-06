@@ -101,7 +101,7 @@ fun EventsScreen(
         )
 
         DaeCardSpotlightOverlay(
-            visible = isOnboarding && onboardingStep == OnboardingStep.HIGHLIGHT_DAE_CARD,
+            visible = isOnboarding && (onboardingStep == OnboardingStep.HIGHLIGHT_LOGOUT || onboardingStep == OnboardingStep.HIGHLIGHT_DAE_CARD),
             onTapDaeCard = {
                 viewModel.completeOnboarding()
                 onNavigateToDaeThread()
