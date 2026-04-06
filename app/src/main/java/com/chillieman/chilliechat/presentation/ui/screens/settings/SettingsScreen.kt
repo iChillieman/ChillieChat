@@ -441,7 +441,7 @@ private fun SettingsContent(
                     message = message ?: "",
                     visible = message != null,
                     dismissLabel = if (showDismiss) "Got it!" else null,
-                    onDismiss = if (showDismiss) onCompleteOnboarding else null
+                    onDismiss = if (showDismiss) onAdvanceOnboarding else null
                 )
             }
         }

@@ -32,7 +32,8 @@ class OnboardingManager @Inject constructor(
             OnboardingStep.FOCUS_SECRET -> OnboardingStep.HIGHLIGHT_LOGIN
             OnboardingStep.HIGHLIGHT_LOGIN -> OnboardingStep.WAIT_LOGIN
             OnboardingStep.WAIT_LOGIN -> OnboardingStep.HIGHLIGHT_LOGOUT
-            OnboardingStep.HIGHLIGHT_LOGOUT -> OnboardingStep.COMPLETED
+            OnboardingStep.HIGHLIGHT_LOGOUT -> OnboardingStep.HIGHLIGHT_DAE_CARD
+            OnboardingStep.HIGHLIGHT_DAE_CARD -> OnboardingStep.COMPLETED
             OnboardingStep.COMPLETED -> OnboardingStep.COMPLETED
         }
         _currentStep.value = next

@@ -105,9 +105,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             agentPreferencesManager.clearAgent()
             _uiState.value = SettingsUiState.Success()
-            // Advance onboarding: logout → complete
+            // Advance onboarding: logout → highlight Dae card
             if (onboardingManager.currentStep.value == OnboardingStep.HIGHLIGHT_LOGOUT) {
-                onboardingManager.completeOnboarding()
+                onboardingManager.advanceStep()
             }
         }
     }

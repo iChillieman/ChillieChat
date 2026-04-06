@@ -7,5 +7,6 @@ enum class OnboardingStep {
     HIGHLIGHT_LOGIN,
     WAIT_LOGIN,
     HIGHLIGHT_LOGOUT,
+    HIGHLIGHT_DAE_CARD,
     COMPLETED
 }

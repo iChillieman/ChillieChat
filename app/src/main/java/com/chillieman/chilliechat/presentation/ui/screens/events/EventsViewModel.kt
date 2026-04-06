@@ -72,4 +72,10 @@ class EventsViewModel @Inject constructor(
             onboardingManager.completeOnboarding()
         }
     }
+
+    fun completeOnboarding() {
+        viewModelScope.launch {
+            onboardingManager.completeOnboarding()
+        }
+    }
 }
