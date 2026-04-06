@@ -1,5 +1,6 @@
 package com.chillieman.chilliechat.presentation.ui.screens.threads
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -116,7 +117,13 @@ internal fun ThreadsScreenContent(
                         ) { thread ->
                             ThreadCard(
                                 thread = thread,
-                                onClick = { onNavigateToEntries(thread.id, thread.title, state.event.endTime) }
+                                onClick = {
+                                    onNavigateToEntries(
+                                        thread.id,
+                                        thread.title,
+                                        state.event.endTime
+                                    )
+                                }
                             )
                         }
                     }
@@ -132,7 +139,12 @@ internal fun ThreadsScreenContent(
                         Column {
                             Text("Warning - this event is NOT moderated in real time by Daedalus - you may see offensive language, you must be 18 years or older to enter.")
                             Spacer(modifier = Modifier.height(16.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.combinedClickable(onClick = {
+                                    checked = !checked
+                                })
+                            ) {
                                 Checkbox(checked = checked, onCheckedChange = { checked = it })
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("I'm 18, let me in")
@@ -158,21 +170,29 @@ internal fun ThreadsScreenContent(
                     AlertDialog(
                         onDismissRequest = { isLocallyDismissed = true },
                         title = { Text("Tip") },
-                        text = { 
+                        text = {
                             Column {
                                 Text("Daedalus moderates this chat in real time! When you enter the chatroom, say something that contains Dae, and Daedalus will respond to you as soon as possible.")
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Checkbox(checked = dontRemindMe, onCheckedChange = { dontRemindMe = it })
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.combinedClickable(onClick = {
+                                        dontRemindMe = !dontRemindMe
+                                    })
+                                ) {
+                                    Checkbox(
+                                        checked = dontRemindMe,
+                                        onCheckedChange = { dontRemindMe = it }
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text("Don't Remind me again")
                                 }
                             }
                         },
                         confirmButton = {
-                            TextButton(onClick = { 
+                            TextButton(onClick = {
                                 if (dontRemindMe) {
-                                    onDismissDaeTip() 
+                                    onDismissDaeTip()
                                 } else {
                                     isLocallyDismissed = true
                                 }
@@ -282,9 +302,10 @@ private fun ThreadCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        thread.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { tag ->
-                            TagChip(tag)
-                        }
+                        thread.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                            .forEach { tag ->
+                                TagChip(tag)
+                            }
                     }
                 }
             }

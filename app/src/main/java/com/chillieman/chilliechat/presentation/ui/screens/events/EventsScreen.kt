@@ -1,5 +1,6 @@
 package com.chillieman.chilliechat.presentation.ui.screens.events
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -149,7 +150,10 @@ internal fun EventsScreenContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .combinedClickable(
+                                onClick = { onToggleActiveOnly() }
+                            ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
